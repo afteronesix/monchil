@@ -1,0 +1,26 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjQ3MTAwMywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDQzMDUxMjg3M2M0M0EzODUzNWRCNkQ3QTVEOTNCYkMyQUM2MTUwOEIifQ",
+    "payload": "eyJkb21haW4iOiJtb25jaGlsLnZlcmNlbC5hcHAifQ",
+    "signature": "MHhjY2IwMDAyNzQzMTAzMjg5OGMyMDdlNmExZTBjMTQwYWJhMDBjM2I1OTMzZTkzYTliYzc3OTk1MzMxNWZiNjI5MGRlMmM1N2JjYzc4YzkxMDk3M2YxYzA2ODlmNjYzOTZmZWI1YmZiM2U2NGI1ZTZkZDQ0OTJhNjUzNjVmYzQwNjFj"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Monchil NFT",
+    "iconUrl": "https://monchil.vercel.app/logo.png",
+    "splashImageUrl": "https://monchil.vercel.app/logo.png",
+    "splashBackgroundColor": "#3f317b",
+    "homeUrl": "https://monchil.vercel.app",
+    "buttonTitle": "Mint Monchil",
+    "subtitle": "Monchil NFT ",
+    "description": "Mint Monchil NFT ",
+    "screenshotUrls": [],
+    "primaryCategory": "art-creativity",
+    "tags": ["Monchil", "monad", "nft", "mint"],
+    "heroImageUrl": "https://monchil.vercel.app/logo.png",
+    "tagline": "Monchil NFT ",
+    "ogTitle": "Monchil NFT",
+    "ogDescription": "Mint Monchil NFT ",
+    "ogImageUrl": "https://monchil.vercel.app/logo.png"
+  }
+}
