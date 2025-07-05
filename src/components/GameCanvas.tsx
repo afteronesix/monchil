@@ -1,3 +1,4 @@
+// src/components/GameCanvas.tsx
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import bgImage from '../assets/bg.png';
 import heroSprite from '../assets/led.png';
@@ -18,27 +19,33 @@ type GameRefs = {
     floorVelocity: number;
 };
 
-// --- Constants ---
-const MARGIN_TOP = 30;
-const STAGE_WIDTH = 360;
-const STAGE_HEIGHT = 480 + MARGIN_TOP;
-const FLOOR_WIDTH = 100;
-const FLOOR_HEIGHT = 12;
-const FLOOR_DISTANCE = 60;
-const SPRING_HEIGHT = FLOOR_HEIGHT - 4;
-const HERO_WIDTH = 26;
-const ARROW_HEIGHT = 15;
-const ARROW_WIDTH = 5;
+// --- ### CONSTANTS (ALL SCALED UP) ### ---
+const STAGE_WIDTH = 480; // From 360
+const LOGICAL_GAME_HEIGHT = 640; // Scaled from 480 (480 * 4/3)
 
-const FLOOR_VELOCITY_BASE = -0.10;
-const GRAVITY_ACC = 0.0015;
-const SPRINGING_VELOCITY = -0.5;
+const MARGIN_TOP = 40; // From 30
+const STAGE_HEIGHT = LOGICAL_GAME_HEIGHT + MARGIN_TOP; // 640 + 40 = 680
+
+const FLOOR_WIDTH = 133; // From 100
+const FLOOR_HEIGHT = 16; // From 12
+const FLOOR_DISTANCE = 80; // From 60
+const SPRING_HEIGHT = FLOOR_HEIGHT - 5; // Scaled from 12-4
+const HERO_WIDTH = 35; // From 26
+const ARROW_HEIGHT = 20; // From 15
+const ARROW_WIDTH = 7; // From 5
+
+// Physics scaled up to feel the same in a larger world
+const FLOOR_VELOCITY_BASE = -0.133; // From -0.10
+const GRAVITY_ACC = 0.002; // From 0.0015
+const SPRINGING_VELOCITY = -0.667; // From -0.5
+const ROLLING_VELOCITY = 0.133; // From 0.1
+const CONTROL_VELOCITY = 0.267; // From 0.2
+
 const SPRING_TIME = 100;
 const FAKE_FLOOR_TIME = 300;
 const FAKE_FLOOR_TIME2 = 600;
-const ROLLING_VELOCITY = 0.1;
-const CONTROL_VELOCITY = 0.2;
 const MAX_ACTION_INTERVAL = 20;
+
 
 // --- Utility Functions ---
 function roundRect(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -450,7 +457,7 @@ const GameCanvas: React.FC = () => {
         if (!ctx || !canvas) return;
 
         ctx.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
-        ctx.drawImage(game.assets.bg, 0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
+        ctx.drawImage(game.assets.bg, 0, MARGIN_TOP, STAGE_WIDTH, LOGICAL_GAME_HEIGHT);
         
         game.floorArray.forEach(floor => floor.draw(ctx, time));
         game.hero?.draw(ctx, time);
@@ -670,8 +677,7 @@ const GameCanvas: React.FC = () => {
             onTouchCancel={handleTouchEnd}
         >
             <div className="absolute top-0 left-0 w-full bg-black text-white p-2 font-mono text-sm z-10" style={{ height: MARGIN_TOP }}>
-                {/* ### PERUBAHAN SIMBOL NYAWA ### */}
-                <span>Nyawa: {'❤️'.repeat(life)}{'🤍'.repeat(Math.max(0, 10 - life))}</span>
+                <span>Life: {'❤️'.repeat(life)}{'🤍'.repeat(Math.max(0, 10 - life))}</span>
                 <span className="ml-4">Score: {score}</span>
             </div>
             <canvas ref={canvasRef} className="absolute top-0 left-0" />
