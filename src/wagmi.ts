@@ -1,4 +1,4 @@
-import { farcasterFrame } from '@farcaster/frame-wagmi-connector'
+import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 import { http, createConfig } from 'wagmi'
 import { monadTestnet } from 'wagmi/chains'
 
@@ -6,7 +6,7 @@ import { monadTestnet } from 'wagmi/chains'
 
 export const config = createConfig({
   chains: [monadTestnet],
-  connectors: [farcasterFrame()],
+  connectors: [miniAppConnector()],
   transports: {
     [monadTestnet.id]: http(),
   },

@@ -1,227 +1,103 @@
-import { useState, useEffect } from "react";
-import { sdk } from "@farcaster/frame-sdk";
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useReadContract,
-  useWriteContract,
-  useSwitchChain,
-  useChainId,
-} from "wagmi";
-import { monadTestnet } from "wagmi/chains";
-import abi from "./MonABI.json";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState, type ReactNode } from "react";
+import { sdk } from "@farcaster/miniapp-sdk";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { Wallet, Store, Gamepad2 } from 'lucide-react'; 
 
-const CONTRACT_ADDRESS = "0x5fd581965DAAC580561b31b1a4D57a8636e27a4c";
-const PRICE_PER_NFT = 0.2;
-const MAX_SUPPLY = 10000;
-const MAX_QUANTITY = 2; // Added constant for max quantity
+import Menu from "./components/Menu";
+import Account from "./hooks/account";
+import { MintNFT } from "./pages/MintNFT";
+import GamePage from "./pages/GamePage";
+
+// Fungsi untuk memotong alamat wallet
+const shortenAddress = (address: string | undefined) => {
+  if (!address) return null;
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+};
+
+
+type MenuItem = {
+  name: string;
+  icon: ReactNode; 
+  component: ReactNode;
+};
+
 
 export default function App() {
-  const [quantity, setQuantity] = useState(1);
-  const { address, isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
-
-  const totalMintedResult = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: "totalSupply",
-    chainId: monadTestnet.id,
-  });
-
-  const yourMintedResult = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: "balanceOf",
-    args: [address || "0x0000000000000000000000000000000000000000"],
-    chainId: monadTestnet.id,
-  });
-
-  const hasNFT = Number(yourMintedResult.data || 0) >= 1;
-
-  const { writeContractAsync, isPending } = useWriteContract();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    sdk.actions.ready();
+    try {
+      sdk.actions.ready();
+      sdk.actions.addMiniApp();
+    } catch (e) {
+      console.warn("Farcaster SDK not available. This is expected in a normal browser.");
+    }
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      totalMintedResult.refetch?.();
-      yourMintedResult.refetch?.();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [totalMintedResult.refetch, yourMintedResult.refetch]);
+  // 3. Ikon menu diganti dengan ikon dari lucide-react
+  const menuItems: MenuItem[] = [
+    { name: "Mint", icon: <Store className="w-5 h-5" />, component: <MintNFT /> },
+    { name: "Game", icon: <Gamepad2 className="w-5 h-5" />, component: <GamePage /> },
+  ];
 
-  const handleSwitchChain = async () => {
-    try {
-      await switchChain({ chainId: monadTestnet.id });
-      toast.success("Switched to Monad Testnet");
-    } catch (error) {
-      toast.error("Failed to switch chain");
-      console.error(error);
-    }
-  };
-
-  const handleMint = async () => {
-    if (!address) {
-      toast.error("Wallet not connected");
-      return;
-    }
-
-    if (chainId !== monadTestnet.id) {
-      toast.warning("Please switch to Monad Testnet");
-      return;
-    }
-
-    try {
-      const value = BigInt(PRICE_PER_NFT * quantity * 1e18);
-
-      await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi,
-        functionName: "mint",
-        args: [quantity],
-        value: value,
-        chainId: monadTestnet.id,
-      });
-
-      toast.success(`🎉 Successfully minted ${quantity} NFT${quantity > 1 ? "s" : ""}!`);
-
-      totalMintedResult.refetch?.();
-      yourMintedResult.refetch?.();
-
-      try {
-        await sdk.actions.composeCast({
-          text: `I just minted ${quantity} Monchil NFT${quantity > 1 ? "s" : ""} ✨`,
-          embeds: ["https://monchil.vercel.app", "https://farcaster.xyz/owr/0x661201f4"],
-        });
-      } catch (castErr) {
-        console.error("Farcaster cast failed:", castErr);
-        toast.warning("Minted successfully, but failed to post to Farcaster.");
-      }
-    } catch (err) {
-      console.error("Mint failed:", err);
-      toast.error("Mint Failed.");
-    }
-  };
-
-  const handleManualShare = async () => {
-    try {
-      await sdk.actions.composeCast({
-        text: "I already minted 1 Monchil NFT, get yours too!",
-        embeds: ["https://monchil.vercel.app", "https://farcaster.xyz/owr/0x169e0640"],
-      });
-      toast.success("Shared to Farcaster!");
-    } catch (err) {
-      console.error("Manual cast failed:", err);
-      toast.error("Failed to share on Farcaster.");
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-purple-400 flex items-center justify-center p-4">
-      <ToastContainer />
-      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md w-full text-center">
-        <h1 className="text-3xl font-bold text-purple-600 mb-2">Monchil NFT</h1>
-        <p className="text-sm text-gray-500 mb-4">
-          Monchil NFT is a collection of cute characters from the world of Mon.
-        </p>
-
-        <img
-          src="https://monchil.vercel.app/logo.png"
-          alt="Monchil Preview"
-          className="rounded-xl mx-auto border-4 border-pink-200 shadow-md mb-4"
-        />
-
-        {isConnected && chainId !== monadTestnet.id && (
-          <div className="mb-4">
-            <button
-              onClick={handleSwitchChain}
-              className="bg-white text-purple-800 py-2 px-4 rounded-3xl font-bold shadow-md hover:bg-purple-100 transition-colors"
-            >
-              Switch to Monad
-            </button>
-          </div>
-        )}
-
-        {!hasNFT && (
-          <div className="flex items-center justify-center mb-6 gap-2">
-            <button
-              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-              className="bg-pink-200 text-pink-700 px-3 py-1 rounded-full text-xl"
-            >
-              -
-            </button>
-            <span className="text-xl font-bold w-10 text-center">{quantity}</span>
-            {quantity < MAX_QUANTITY && (
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="bg-pink-200 text-pink-700 px-3 py-1 rounded-full text-xl"
-              >
-                +
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="mb-2 text-sm text-gray-600">
-          🧮 Total Minted:{" "}
-          <strong>{Number(totalMintedResult.data || 0)} / {MAX_SUPPLY}</strong>
-        </div>
-        <div className="mb-4 text-sm text-gray-600">
-          👤 You Minted:{" "}
-          <strong>{Number(yourMintedResult.data || 0)} / 1</strong>
-        </div>
-
-        {isConnected ? (
-          <>
-            {!hasNFT ? (
-              <button
-                disabled={isPending}
-                onClick={handleMint}
-                className="w-full bg-purple-500 hover:bg-pink-600 text-white font-bold py-2 rounded-xl shadow-md transition disabled:opacity-50"
-              >
-                {isPending
-                  ? "Processing..."
-                  : `🎉 Mint ${quantity} NFT${quantity > 1 ? "s" : ""} (${PRICE_PER_NFT * quantity} MON)`}
-              </button>
-            ) : (
-              <button
-                onClick={handleManualShare}
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition"
-              >
-                📢 Share my NFT 🎉
-              </button>
-            )}
-
-            <button
-              onClick={() => disconnect()}
-              className="mt-2 text-sm text-purple-500 underline"
-            >
-              Disconnect Wallet
-            </button>
-          </>
-        ) : (
-          <div className="space-y-2">
+  // Tampilan jika wallet belum terhubung
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex justify-center items-center p-4">
+        <div className="bg-gray-900 backdrop-blur-sm p-8 md:p-10 rounded-3xl shadow-xl text-center max-w-md w-full border-2 border-gray-800">
+          {/* 5. Warna judul diubah menjadi ungu */}
+          <h1 className="text-4xl font-black mb-4 text-purple-400">Welcome to Monchil</h1>
+          <p className="mb-8 text-gray-300">Connect your wallet First!</p>
+          <div className="flex flex-col gap-3">
             {connectors
-              .filter((c) => c.name === "Farcaster")
+              .filter((c) => c.name.toLowerCase().includes("meta"))
               .map((connector) => (
                 <button
-                  key={connector.id}
+                  key={connector.uid}
                   onClick={() => connect({ connector })}
-                  className="w-full bg-pink-400 hover:bg-pink-500 text-white font-bold py-2 rounded-xl shadow-md transition"
+                  className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-full hover:bg-purple-700 hover:scale-105 transition-all shadow-lg flex items-center justify-center gap-3"
                 >
-                  🔐 Connect with {connector.name}
+                  {/* 4. Ikon SVG diganti dengan ikon Wallet dari lucide-react */}
+                  <Wallet className="w-6 h-6" />
+                  Connect with {connector.name}
                 </button>
               ))}
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  // Tampilan utama setelah wallet terhubung
+  return (
+    <div className="h-screen overflow-y-auto bg-purple-700 text-white relative">
+      <header className="absolute top-0 left-0 right-0 p-4 grid grid-cols-2 items-center z-50">
+        <div className="justify-self-start">
+          <Account />
+        </div>
+        
+        <div className="relative justify-self-end">
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="flex items-center justify-center h-10 px-4 bg-gray-900/50 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-800 transition-colors font-mono text-sm"
+          >
+            {shortenAddress(address)}
+          </button>
+
+          {menuOpen && (
+            <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-2xl shadow-lg z-10 overflow-hidden">
+              <button onClick={() => { disconnect(); setMenuOpen(false); }} className="block w-full px-4 py-3 text-left font-semibold text-red-400 hover:bg-red-500/20 transition-colors">
+                Disconnect
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+      <div className="px-4 pb-10 pt-24">
+        <Menu items={menuItems} />
       </div>
     </div>
   );
