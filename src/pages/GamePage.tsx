@@ -61,10 +61,10 @@ export default function GamePage() {
   );
 
   const GameView = () => (
-    <div className="relative w-full h-full max-w-lg aspect-[480/680] shadow-2xl">
-      <GameCanvas onGameOver={handleGameOver} />
-    </div>
-  );
+  <div className="relative w-full max-w-lg aspect-[480/680] shadow-2xl rounded-lg overflow-hidden border-4 border-purple-800">
+    <GameCanvas onGameOver={handleGameOver} />
+  </div>
+);
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-purple-950">
