@@ -6,7 +6,6 @@ import GameCanvas from '../components/GameCanvas';
 export default function GamePage() {
   const [gameStarted, setGameStarted] = useState(false);
 
-
   const handleGameOver = () => {
     setGameStarted(false);
   };
@@ -16,8 +15,8 @@ export default function GamePage() {
       <h1 className="text-5xl font-bold mb-2">NS-SHAFT</h1>
       <p className="text-gray-400 mb-6">Test For Fun, wait for Update</p>
 
-     
-      <div className="bg-gray-800/50 border border-purple-700 rounded-lg p-5 w-full mb-8 backdrop-blur-sm">
+      
+      <div className="bg-gray-900 border border-purple-700 rounded-lg p-5 w-full mb-8 backdrop-blur-sm">
         <h2 className="text-2xl font-bold mb-4 text-purple-400">How to Play</h2>
         <ul className="space-y-4 text-left text-gray-300">
           <li className="flex items-center gap-4">
@@ -27,7 +26,7 @@ export default function GamePage() {
             </div>
           </li>
           <li className="flex items-center gap-4">
-            <Keyboard size={40} className="text-purple-400 flex-shrink-0" />
+            <Keyboard size={40} className="text-purple-700 flex-shrink-0" />
             <div>
               <strong>Start Game:</strong> After clicking PLAY, press the <kbd>Space</kbd> key or click the screen again to begin.
             </div>
@@ -53,10 +52,10 @@ export default function GamePage() {
         </ul>
       </div>
 
-      
+      {/* DIUBAH: Warna tombol menjadi lebih gelap/hitam agar serasi dengan card */}
       <button
         onClick={() => setGameStarted(true)}
-        className="w-full max-w-xs bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-xl flex items-center justify-center gap-2 transition-transform transform hover:scale-105 shadow-lg shadow-purple-900/50"
+        className="w-full max-w-xs bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-lg text-xl flex items-center justify-center gap-2 transition-all transform hover:scale-105 shadow-lg shadow-purple-500/30"
       >
         <Play size={24} />
         PLAY
@@ -71,7 +70,8 @@ export default function GamePage() {
   );
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center p-4 text-white bg-gray-900">
+    
+    <div className="w-full h-screen overflow-hidden flex flex-col items-center justify-center p-4 text-white bg-purple-700">
       {!gameStarted ? <MainMenu /> : <GameView />}
     </div>
   );
