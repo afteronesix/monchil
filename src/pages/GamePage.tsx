@@ -67,7 +67,7 @@ export default function GamePage() {
 );
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-purple-950">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-purple-700">
       {!gameStarted ? <MainMenu /> : <GameView />}
     </div>
   );

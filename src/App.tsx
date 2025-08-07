@@ -74,12 +74,12 @@ export default function App() {
         <div className="relative justify-self-end">
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
-            className="flex items-center justify-center h-10 px-4 bg-gray-900/50 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-800 transition-colors font-mono text-sm"
+            className="flex items-center justify-center h-10 px-4 bg-gray-300/50 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-500 transition-colors font-mono text-sm"
           >
             {shortenAddress(address)}
           </button>
           {menuOpen && (
-            <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-2xl shadow-lg z-10 overflow-hidden">
+            <div className="absolute top-full right-0 mt-2 w-48 bg-gray-300 border border-gray-700 rounded-2xl shadow-lg z-10 overflow-hidden">
               <button onClick={() => { disconnect(); setMenuOpen(false); }} className="block w-full px-4 py-3 text-left font-semibold text-red-400 hover:bg-red-500/20 transition-colors">
                 Disconnect
               </button>
