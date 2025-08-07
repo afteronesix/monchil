@@ -20,27 +20,24 @@ type GameRefs = {
 };
 
 // --- ### CONSTANTS (ALL SCALED UP) ### ---
-const STAGE_WIDTH = 480; // From 360
-const LOGICAL_GAME_HEIGHT = 640; // Scaled from 480 (480 * 4/3)
+const STAGE_WIDTH = 480;
+const LOGICAL_GAME_HEIGHT = 640;
+const MARGIN_TOP = 40;
+const STAGE_HEIGHT = LOGICAL_GAME_HEIGHT + MARGIN_TOP;
+const FLOOR_WIDTH = 133;
+const FLOOR_HEIGHT = 16;
+const FLOOR_DISTANCE = 80;
+const SPRING_HEIGHT = FLOOR_HEIGHT - 5;
+const HERO_WIDTH = 35;
+const ARROW_HEIGHT = 20;
+const ARROW_WIDTH = 7;
 
-const MARGIN_TOP = 40; // From 30
-const STAGE_HEIGHT = LOGICAL_GAME_HEIGHT + MARGIN_TOP; // 640 + 40 = 680
-
-const FLOOR_WIDTH = 133; // From 100
-const FLOOR_HEIGHT = 16; // From 12
-const FLOOR_DISTANCE = 80; // From 60
-const SPRING_HEIGHT = FLOOR_HEIGHT - 5; // Scaled from 12-4
-const HERO_WIDTH = 35; // From 26
-const ARROW_HEIGHT = 20; // From 15
-const ARROW_WIDTH = 7; // From 5
-
-// Physics scaled up to feel the same in a larger world
-const FLOOR_VELOCITY_BASE = -0.133; // From -0.10
-const GRAVITY_ACC = 0.002; // From 0.0015
-const SPRINGING_VELOCITY = -0.667; // From -0.5
-const ROLLING_VELOCITY = 0.133; // From 0.1
-const CONTROL_VELOCITY = 0.267; // From 0.2
-
+// Physics
+const FLOOR_VELOCITY_BASE = -0.133;
+const GRAVITY_ACC = 0.002;
+const SPRINGING_VELOCITY = -0.667;
+const ROLLING_VELOCITY = 0.133;
+const CONTROL_VELOCITY = 0.267;
 const SPRING_TIME = 100;
 const FAKE_FLOOR_TIME = 300;
 const FAKE_FLOOR_TIME2 = 600;
@@ -157,13 +154,40 @@ class Floor implements IFloor {
     draw(context: CanvasRenderingContext2D, _time: number) {
         context.save();
         context.translate(this.x, this.y);
-        context.lineWidth = FLOOR_HEIGHT;
-        context.strokeStyle = '#000';
-        context.setLineDash([23.5, 2]);
-        context.beginPath();
-        context.moveTo(0, -FLOOR_HEIGHT * 0.5);
-        context.lineTo(FLOOR_WIDTH, -FLOOR_HEIGHT * 0.5);
-        context.stroke();
+
+        const brickRowCount = 2;
+        const brickColumnCount = 5;
+        const mortarColor = '#8D8D8D';
+        const brickColor = '#B22222';
+        const mortarThickness = 2;
+
+        const availableWidth = FLOOR_WIDTH - (brickColumnCount + 1) * mortarThickness;
+        const brickWidth = availableWidth / brickColumnCount;
+        const availableHeight = FLOOR_HEIGHT - (brickRowCount + 1) * mortarThickness;
+        const brickHeight = availableHeight / brickRowCount;
+
+        context.fillStyle = mortarColor;
+        context.fillRect(0, -FLOOR_HEIGHT, FLOOR_WIDTH, FLOOR_HEIGHT);
+
+        context.fillStyle = brickColor;
+        for (let i = 0; i < brickRowCount; i++) {
+            const y = -FLOOR_HEIGHT + mortarThickness + i * (brickHeight + mortarThickness);
+
+            if (i % 2 === 0) {
+                for (let j = 0; j < brickColumnCount; j++) {
+                    const x = mortarThickness + j * (brickWidth + mortarThickness);
+                    context.fillRect(x, y, brickWidth, brickHeight);
+                }
+            } else {
+                context.fillRect(mortarThickness, y, brickWidth / 2, brickHeight);
+                for (let j = 0; j < brickColumnCount - 1; j++) {
+                    const x = mortarThickness + brickWidth / 2 + mortarThickness + j * (brickWidth + mortarThickness);
+                    context.fillRect(x, y, brickWidth, brickHeight);
+                }
+                const lastX = FLOOR_WIDTH - mortarThickness - (brickWidth / 2);
+                context.fillRect(lastX, y, brickWidth / 2, brickHeight);
+            }
+        }
         context.restore();
     }
     getHeight() { return FLOOR_HEIGHT; }
@@ -197,12 +221,12 @@ class Spring extends Floor {
         context.save();
         context.translate(this.x, this.y);
         context.fillStyle = '#000';
-        context.strokeStyle = '#000';
         context.fillRect(0, -2, FLOOR_WIDTH, 2);
         context.fillRect(0, -currentHeight, FLOOR_WIDTH, 2);
         const gap = 10;
         const width = (FLOOR_WIDTH - gap * 4) / 3;
         context.lineWidth = width;
+        context.strokeStyle = '#e74c3c';
         context.setLineDash([1, 2]);
         context.beginPath();
         let xPos = gap + width * 0.5;
@@ -335,8 +359,8 @@ class ArrowFloor extends Floor {
     draw(context: CanvasRenderingContext2D, _time: number) {
         context.save();
         context.translate(this.x, this.y);
-        context.strokeStyle = '#000';
-        context.fillStyle = '#000';
+        context.strokeStyle = '#c0392b';
+        context.fillStyle = '#e74c3c';
         context.fillRect(0, -this.getHeight(), FLOOR_WIDTH, 3);
         context.fillRect(0, 6 - this.getHeight(), FLOOR_WIDTH, 3);
         context.beginPath();
@@ -350,7 +374,6 @@ class ArrowFloor extends Floor {
             context.lineTo(Math.min(xPos += ARROW_WIDTH, right), bottom);
         }
         context.closePath();
-        context.fillStyle = '#fff';
         context.fill();
         context.stroke();
         context.restore();
@@ -428,11 +451,17 @@ class FakeFloor extends Floor {
 }
 
 // --- The React Component ---
-const GameCanvas: React.FC = () => {
+
+interface GameCanvasProps {
+  onGameOver: () => void;
+}
+
+const GameCanvas: React.FC<GameCanvasProps> = ({ onGameOver }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [score, setScore] = useState(0);
     const [life, setLife] = useState(10);
-    const [isGameOver, setIsGameOver] = useState(true);
+    // PERUBAHAN 1: Tambahkan state untuk layar game over
+    const [isGameOverScreenVisible, setIsGameOverScreenVisible] = useState(false);
 
     const game = useRef({
         hero: null as Hero | null,
@@ -474,7 +503,7 @@ const GameCanvas: React.FC = () => {
         ctx.fill();
         ctx.stroke();
 
-    }, [game.assets.bg, game.floorArray, game.hero]);
+    }, [game]);
 
     const updateScoreAndLevel = useCallback(() => {
         if (game.hero?.onFloor && game.hero.onFloor.seq > game.highestSeq) {
@@ -490,6 +519,7 @@ const GameCanvas: React.FC = () => {
     }, [game]);
 
     const loop = useCallback((time: number) => {
+        // PERUBAHAN 2: Guard clause utama untuk memastikan hero ada dan game berjalan
         if (!game.isRunning || !game.hero) return;
         const step = Math.min(MAX_ACTION_INTERVAL, time - game.lastTime);
 
@@ -537,7 +567,7 @@ const GameCanvas: React.FC = () => {
         }
 
         const lastFloor = game.floorArray[game.floorArray.length - 1];
-        while (lastFloor.y < STAGE_HEIGHT + FLOOR_DISTANCE) {
+        if (lastFloor?.y < STAGE_HEIGHT + FLOOR_DISTANCE) {
             const floorY = lastFloor.y + FLOOR_DISTANCE;
             const floorX = Math.round(Math.random() * (STAGE_WIDTH - FLOOR_WIDTH));
             
@@ -551,7 +581,6 @@ const GameCanvas: React.FC = () => {
             else newFloor = new Spring(floorX, floorY, game.floorSeqCounter);
             game.floorArray.push(newFloor);
             game.floorSeqCounter++;
-            break;
         }
         game.floorArray = game.floorArray.filter(f => f.y > MARGIN_TOP - 50);
 
@@ -564,9 +593,10 @@ const GameCanvas: React.FC = () => {
         updateScoreAndLevel();
         setLife(game.hero.life);
 
+        // PERUBAHAN 3: Ubah logika game over
         if (game.hero.y > STAGE_HEIGHT + HERO_WIDTH || game.hero.life <= 0) {
             game.isRunning = false;
-            setIsGameOver(true);
+            setIsGameOverScreenVisible(true); // Tampilkan layar game over
         }
     }, [game, updateScoreAndLevel]);
 
@@ -590,16 +620,19 @@ const GameCanvas: React.FC = () => {
 
     const startGame = useCallback(() => {
         if (game.isRunning) return;
+        
+        // PERUBAHAN 4: Reset layar game over saat mulai
+        setIsGameOverScreenVisible(false);
+        
         game.floorArray = [];
         game.floorSeqCounter = 1;
         game.highestSeq = 0;
-        game.hero = new Hero((STAGE_WIDTH - HERO_WIDTH) / 2, STAGE_HEIGHT - FLOOR_DISTANCE * 2, game.assets.hero);
+        game.hero = new Hero((STAGE_WIDTH - HERO_WIDTH) / 2, STAGE_HEIGHT - FLOOR_DISTANCE, game.assets.hero);
         game.floorVelocity = FLOOR_VELOCITY_BASE;
         game.level = 0;
 
-        game.floorArray.push(new Floor((STAGE_WIDTH - FLOOR_WIDTH) / 2, STAGE_HEIGHT - FLOOR_DISTANCE, 0));
+        game.floorArray.push(new Floor((STAGE_WIDTH - FLOOR_WIDTH) / 2, STAGE_HEIGHT, 0));
 
-        setIsGameOver(false);
         setScore(0);
         setLife(10);
         game.lastTime = 0;
@@ -636,13 +669,16 @@ const GameCanvas: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') game.hero?.turnLeft();
-            if (e.key === 'ArrowRight') game.hero?.turnRight();
-            if (e.key === ' ' && !game.isRunning) startGame();
+            // PERUBAHAN 5: Tambahkan null check dan screen check
+            if (!game.hero) return;
+            if (e.key === 'ArrowLeft') game.hero.turnLeft();
+            if (e.key === 'ArrowRight') game.hero.turnRight();
+            if (e.key === ' ' && !game.isRunning && !isGameOverScreenVisible) startGame();
         };
         const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft' && game.hero?.direction === -1) game.hero?.stay();
-            if (e.key === 'ArrowRight' && game.hero?.direction === 1) game.hero?.stay();
+            if (!game.hero) return;
+            if (e.key === 'ArrowLeft' && game.hero.direction === -1) game.hero.stay();
+            if (e.key === 'ArrowRight' && game.hero.direction === 1) game.hero.stay();
         };
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -650,43 +686,53 @@ const GameCanvas: React.FC = () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [game, startGame]);
+    }, [game, startGame, isGameOverScreenVisible]);
 
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-        if (!game.isRunning) return;
+        // PERUBAHAN 6: Tambahkan null check
+        if (!game.isRunning || !game.hero) return;
         const touchX = e.touches[0].clientX;
         const rect = (e.target as HTMLElement).getBoundingClientRect();
         if (touchX < rect.left + rect.width / 2) {
-            game.hero?.turnLeft();
+            game.hero.turnLeft();
         } else {
-            game.hero?.turnRight();
+            game.hero.turnRight();
         }
     };
 
     const handleTouchEnd = () => {
-        if (!game.isRunning) return;
-        game.hero?.stay();
+        // PERUBAHAN 7: Tambahkan null check
+        if (!game.isRunning || !game.hero) return;
+        game.hero.stay();
     };
 
+    // PERUBAHAN 8: Update struktur JSX
     return (
-        <div
-            className="relative select-none w-full h-full cursor-pointer"
-            onClick={!game.isRunning ? startGame : undefined}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchEnd}
-        >
-            <div className="absolute top-0 left-0 w-full bg-black text-white p-2 font-mono text-sm z-10" style={{ height: MARGIN_TOP }}>
-                <span>Life: {'❤️'.repeat(life)}{'🤍'.repeat(Math.max(0, 10 - life))}</span>
-                <span className="ml-4">Score: {score}</span>
+        <div className="relative w-full h-full">
+            <div
+                className="relative select-none w-full h-full cursor-pointer"
+                onClick={!game.isRunning && !isGameOverScreenVisible ? startGame : undefined}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+            >
+                <div className="absolute top-0 left-0 w-full bg-black text-white p-2 font-mono text-sm z-10" style={{ height: MARGIN_TOP }}>
+                    <span>Life: {'❤️'.repeat(life)}{'🤍'.repeat(Math.max(0, 10 - life))}</span>
+                    <span className="ml-4">Score: {score}</span>
+                </div>
+                <canvas ref={canvasRef} className="absolute top-0 left-0" />
             </div>
-            <canvas ref={canvasRef} className="absolute top-0 left-0" />
-            {!game.isRunning && game.assets.loaded && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
-                    <div className="text-white text-center">
-                        <h2 className="text-4xl font-bold mb-4">{isGameOver ? 'Game Over' : 'Paused'}</h2>
-                        <p className="text-lg animate-pulse">Click to {isGameOver ? 'Play Again' : 'Continue'}</p>
-                    </div>
+
+            {isGameOverScreenVisible && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-20 text-white text-center">
+                    <h2 className="text-5xl font-bold mb-4 text-red-500 animate-pulse">Game Over</h2>
+                    <p className="text-2xl mb-8">Your Score: {score}</p>
+                    <button
+                        onClick={onGameOver}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition-transform transform hover:scale-105"
+                    >
+                        Back to Menu
+                    </button>
                 </div>
             )}
         </div>

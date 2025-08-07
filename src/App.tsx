@@ -8,7 +8,7 @@ import Account from "./hooks/account";
 import { MintNFT } from "./pages/MintNFT";
 import GamePage from "./pages/GamePage";
 
-// Fungsi untuk memotong alamat wallet
+
 const shortenAddress = (address: string | undefined) => {
   if (!address) return null;
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
@@ -37,18 +37,17 @@ export default function App() {
     }
   }, []);
 
-  // 3. Ikon menu diganti dengan ikon dari lucide-react
+ 
   const menuItems: MenuItem[] = [
     { name: "Mint", icon: <Store className="w-5 h-5" />, component: <MintNFT /> },
     { name: "Game", icon: <Gamepad2 className="w-5 h-5" />, component: <GamePage /> },
   ];
 
-  // Tampilan jika wallet belum terhubung
+  
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-gray-950 flex justify-center items-center p-4">
         <div className="bg-gray-900 backdrop-blur-sm p-8 md:p-10 rounded-3xl shadow-xl text-center max-w-md w-full border-2 border-gray-800">
-          {/* 5. Warna judul diubah menjadi ungu */}
           <h1 className="text-4xl font-black mb-4 text-purple-400">Welcome to Monchil</h1>
           <p className="mb-8 text-gray-300">Connect your wallet First!</p>
           <div className="flex flex-col gap-3">
@@ -60,7 +59,7 @@ export default function App() {
                   onClick={() => connect({ connector })}
                   className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-full hover:bg-purple-700 hover:scale-105 transition-all shadow-lg flex items-center justify-center gap-3"
                 >
-                  {/* 4. Ikon SVG diganti dengan ikon Wallet dari lucide-react */}
+                  
                   <Wallet className="w-6 h-6" />
                   Connect with {connector.name}
                 </button>
@@ -71,7 +70,7 @@ export default function App() {
     );
   }
 
-  // Tampilan utama setelah wallet terhubung
+
   return (
     <div className="h-screen overflow-y-auto bg-purple-700 text-white relative">
       <header className="absolute top-0 left-0 right-0 p-4 grid grid-cols-2 items-center z-50">

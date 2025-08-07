@@ -1,2 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap');
 @import "tailwindcss";
+
+body {
+  font-family: "Gamja Flower";
+  font-weight: 800;
+  font-style: normal;
+}
+
 
