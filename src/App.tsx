@@ -1,32 +1,28 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { Wallet, Store, Gamepad2 } from 'lucide-react'; 
-
-import Menu from "./components/Menu";
+import { Wallet, Store, Gamepad2 } from 'lucide-react';
 import Account from "./hooks/account";
 import { MintNFT } from "./pages/MintNFT";
 import GamePage from "./pages/GamePage";
-
 
 const shortenAddress = (address: string | undefined) => {
   if (!address) return null;
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
 };
 
-
 type MenuItem = {
   name: string;
-  icon: ReactNode; 
+  icon: ReactNode;
   component: ReactNode;
 };
-
 
 export default function App() {
   const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePage, setActivePage] = useState('Mint');
 
   useEffect(() => {
     try {
@@ -37,13 +33,13 @@ export default function App() {
     }
   }, []);
 
- 
   const menuItems: MenuItem[] = [
     { name: "Mint", icon: <Store className="w-5 h-5" />, component: <MintNFT /> },
     { name: "Game", icon: <Gamepad2 className="w-5 h-5" />, component: <GamePage /> },
   ];
 
-  
+  const ActiveComponent = menuItems.find(item => item.name === activePage)?.component || <MintNFT />;
+
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-gray-950 flex justify-center items-center p-4">
@@ -59,7 +55,6 @@ export default function App() {
                   onClick={() => connect({ connector })}
                   className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-full hover:bg-purple-700 hover:scale-105 transition-all shadow-lg flex items-center justify-center gap-3"
                 >
-                  
                   <Wallet className="w-6 h-6" />
                   Connect with {connector.name}
                 </button>
@@ -70,14 +65,12 @@ export default function App() {
     );
   }
 
-
   return (
-    <div className="h-screen overflow-y-auto bg-purple-700 text-white relative">
+    <div className={`relative ${activePage === 'Game' ? 'h-screen overflow-hidden' : 'min-h-screen bg-purple-700'}`}>
       <header className="absolute top-0 left-0 right-0 p-4 grid grid-cols-2 items-center z-50">
         <div className="justify-self-start">
           <Account />
         </div>
-        
         <div className="relative justify-self-end">
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
@@ -85,7 +78,6 @@ export default function App() {
           >
             {shortenAddress(address)}
           </button>
-
           {menuOpen && (
             <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-2xl shadow-lg z-10 overflow-hidden">
               <button onClick={() => { disconnect(); setMenuOpen(false); }} className="block w-full px-4 py-3 text-left font-semibold text-red-400 hover:bg-red-500/20 transition-colors">
@@ -95,9 +87,25 @@ export default function App() {
           )}
         </div>
       </header>
-      <div className="px-4 pb-10 pt-24">
-        <Menu items={menuItems} />
-      </div>
+
+      <main className={`w-full ${activePage === 'Game' ? 'h-full' : 'px-4 pb-24 pt-24'}`}>
+        {ActiveComponent}
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/50 backdrop-blur-lg p-2 border-t border-purple-800 z-50">
+        <div className="flex justify-around items-center">
+            {menuItems.map(item => (
+                <button 
+                    key={item.name}
+                    onClick={() => setActivePage(item.name)}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors w-full ${activePage === item.name ? 'text-purple-400' : 'text-gray-400 hover:text-white'}`}
+                >
+                    {item.icon}
+                    <span className="text-xs font-bold">{item.name}</span>
+                </button>
+            ))}
+        </div>
+      </nav>
     </div>
   );
 }
