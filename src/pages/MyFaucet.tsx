@@ -30,29 +30,22 @@ export function MyFaucet() {
   const { data: hash, writeContractAsync, isPending, reset } = useWriteContract();
   const [countdown, setCountdown] = useState(0);
 
-  const { data: userStreak, refetch: refetchUserStreak } = useReadContract({
-    address: FAUCET_CONTRACT_ADDRESS,
-    abi: faucetAbi,
-    functionName: "streaks",
-    args: [address || "0x0"],
-    chainId: monadTestnet.id,
-  });
+  const useFaucetRead = (functionName: string, args: any[] = []) => {
+    return useReadContract({
+      address: FAUCET_CONTRACT_ADDRESS,
+      abi: faucetAbi,
+      functionName,
+      args,
+      chainId: monadTestnet.id,
+      query: {
+        refetchOnWindowFocus: true,
+      },
+    });
+  };
 
-  const { data: canUserClaim, refetch: refetchCanUserClaim } = useReadContract({
-    address: FAUCET_CONTRACT_ADDRESS,
-    abi: faucetAbi,
-    functionName: "canClaim",
-    args: [address || "0x0"],
-    chainId: monadTestnet.id,
-  });
-
-  const { data: lastClaimTimestamp, refetch: refetchLastClaim } = useReadContract({
-    address: FAUCET_CONTRACT_ADDRESS,
-    abi: faucetAbi,
-    functionName: "lastClaimTime",
-    args: [address || "0x0"],
-    chainId: monadTestnet.id,
-  });
+  const { data: userStreak, refetch: refetchUserStreak } = useFaucetRead("streaks", [address || "0x0"]);
+  const { data: canUserClaim, refetch: refetchCanUserClaim } = useFaucetRead("canClaim", [address || "0x0"]);
+  const { data: lastClaimTimestamp, refetch: refetchLastClaim } = useFaucetRead("lastClaimTime", [address || "0x0"]);
   
   const { isLoading: isConfirming, isSuccess: isConfirmed } = 
     useWaitForTransactionReceipt({ hash });
@@ -71,8 +64,7 @@ export function MyFaucet() {
     if (isConfirmed) {
       toast.success("🎉 Successfully claimed your daily MON!");
       setCountdown(24 * 60 * 60);
-      
-      refreshAllData(); 
+      refreshAllData();
       sdk.actions.composeCast({
         text: `I just claimed my daily MON from the Monchil Faucet! 🔥`,
         embeds: ["https://monchil.vercel.app"],
@@ -93,20 +85,25 @@ export function MyFaucet() {
     const nowInSeconds = Math.floor(Date.now() / 1000);
     const secondsLeft = cooldownEndTime - nowInSeconds;
 
-    if (secondsLeft > 0) {
-      setCountdown(secondsLeft);
-    } else {
-      setCountdown(0);
-    }
+    setCountdown(secondsLeft > 0 ? secondsLeft : 0);
   }, [lastClaimTimestamp]);
 
   useEffect(() => {
     if (countdown <= 0) return;
+
     const timer = setInterval(() => {
-      setCountdown(prev => prev - 1);
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          refreshAllData();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [countdown]);
+  }, [countdown, refreshAllData]);
 
   const handleSwitchChain = async () => {
     try {
@@ -133,22 +130,22 @@ export function MyFaucet() {
       console.error(err);
     }
   };
-
-  const buttonDisabled = isClaiming || !canUserClaim || countdown > 0;
+  
+  const buttonDisabled = isClaiming || !canUserClaim;
 
   return (
     <div className="flex items-center justify-center h-full">
-        <div className="bg-gray-900 border-purple-700  rounded-2xl shadow-lg p-6 max-w-md w-full text-center text-gray-800">
-            <h1 className="text-3xl font-bold text-purple-600 mb-2">Daily Faucet</h1>
-            <p className="text-sm text-gray-500 mb-4">
+        <div className="bg-gray-900 border border-purple-700 rounded-2xl shadow-lg p-6 max-w-md w-full text-center">
+            <h1 className="text-3xl font-bold text-purple-400 mb-2">Daily Faucet</h1>
+            <p className="text-sm text-gray-400 mb-4">
                 Claim your daily testnet MON and get a bonus for a 3-day streak!
             </p>
             
-            <Gift className="text-7xl text-pink-400 mx-auto my-6 animate-bounce" />
+            <Gift className="text-7xl text-pink-400 mx-auto my-6" />
             
-            <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-6 text-sm">
-                <p className="text-purple-800">1 Day Claim: <span className="font-bold">0.015 $MON</span></p>
-                <p className="text-purple-800">3-Day Streak Bonus: <span className="font-bold">0.05 $MON</span></p>
+            <div className="bg-black/20 border-2 border-purple-800 rounded-lg p-3 mb-6 text-sm">
+                <p className="text-purple-300">1 Day Claim: <span className="font-bold">0.015 $MON</span></p>
+                <p className="text-purple-300">3-Day Streak Bonus: <span className="font-bold">0.05 $MON</span></p>
             </div>
 
             {isConnected && chainId !== monadTestnet.id && (
@@ -160,7 +157,7 @@ export function MyFaucet() {
                 </button>
             )}
 
-            <div className="mb-4 text-lg text-gray-600">
+            <div className="mb-4 text-lg text-gray-300">
                 Your Current Streak: <strong>{Number(userStreak || 0)} Day(s)</strong>
             </div>
 
@@ -168,16 +165,16 @@ export function MyFaucet() {
                 <button
                     disabled={buttonDisabled}
                     onClick={handleClaim}
-                    className="w-full bg-purple-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl shadow-md transition disabled:opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-md transition disabled:opacity-50 disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {isPending ? "Sending..." : 
                      isConfirming ? "Confirming..." : 
-                     countdown > 0 ? <><Clock size={18} /><span>{formatTime(countdown)}</span></> : 
+                     !canUserClaim ? <><Clock size={18} /><span>{formatTime(countdown)}</span></> : 
                      "Claim Now!"
                     }
                 </button>
             ) : (
-                <p className="text-gray-500 mt-4">Connect your wallet to claim.</p>
+                <p className="text-gray-400 mt-4">Connect your wallet to claim.</p>
             )}
         </div>
     </div>
