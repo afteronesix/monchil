@@ -9,6 +9,7 @@
     "name": "Monchil NFT",
     "iconUrl": "https://monchil.vercel.app/logo.png",
     "splashImageUrl": "https://monchil.vercel.app/logo.png",
+    "webhookUrl": "https://api.neynar.com/f/app/c0796cb9-93a4-47c3-a7f6-8820615157e8/event",
     "splashBackgroundColor": "#3f317b",
     "homeUrl": "https://monchil.vercel.app",
     "buttonTitle": "Mint Monchil",

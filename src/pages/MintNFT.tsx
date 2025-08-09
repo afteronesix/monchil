@@ -92,7 +92,7 @@ export function MintNFT() {
 
   return (
     <div className="flex items-center justify-center h-full">
-        <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md w-full text-center">
+        <div className="bg-gray-900 border-purple-700 rounded-2xl shadow-lg p-6 max-w-md w-full text-center">
             <h1 className="text-3xl font-bold text-purple-600 mb-2">Monchil NFT</h1>
             <p className="text-sm text-gray-500 mb-4">
                 A collection of cute characters from the world of Mon.
