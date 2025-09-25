@@ -1,6 +1,6 @@
 import { DEFAULT_CACHE_TIME } from "./config";
 import { useQuery } from "@tanstack/react-query";
-import sdk from "@farcaster/frame-sdk";
+import sdk from "@farcaster/miniapp-sdk";
 
 export function useFarcasterContext(enabled: boolean = true) {
   return useQuery({
