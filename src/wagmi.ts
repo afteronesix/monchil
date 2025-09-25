@@ -42,8 +42,10 @@ createAppKit({
     [monad.id]: "/monad.png",
   },
   features: {
-    email: false,
-    socials: ["farcaster"],
+    swaps: false,
+    onramp: false,
+    history: false,
+    send: true,
   },
   themeMode: "dark",
 });

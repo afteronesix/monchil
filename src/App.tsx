@@ -46,8 +46,7 @@ export default function App() {
           <Account />
         </div>
         <div className="justify-self-end">
-          {/* tombol connect bawaan Reown */}
-          <appkit-button />
+          <appkit-button balance="hide" />
         </div>
       </header>
 

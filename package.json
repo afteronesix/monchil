@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@farcaster/frame-sdk": "latest",
-    "@farcaster/frame-wagmi-connector": "latest",
     "@farcaster/miniapp-sdk": "^0.1.2",
     "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@reown/appkit": "^1.8.7",
