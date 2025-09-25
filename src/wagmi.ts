@@ -1,6 +1,7 @@
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { defineChain } from "@reown/appkit/networks";
+import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 const monad = defineChain({
   id: 10143,
@@ -26,6 +27,9 @@ export const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks: [monad],
   ssr: true,
+  connectors: [
+    miniAppConnector(),
+  ],
 });
 
 createAppKit({
@@ -42,6 +46,7 @@ createAppKit({
     [monad.id]: "/monad.png",
   },
   features: {
+    socials: ["farcaster"],
     swaps: false,
     onramp: false,
     history: false,
