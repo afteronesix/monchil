@@ -43,29 +43,36 @@ export default function App() {
   const ActiveComponent = menuItems.find(item => item.name === activePage)?.component || <MintNFT />;
 
   if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex justify-center items-center p-4">
-        <div className="bg-gray-900 backdrop-blur-sm p-8 md:p-10 rounded-3xl shadow-xl text-center max-w-md w-full border-2 border-gray-800">
-          <h1 className="text-4xl font-black mb-4 text-purple-400">Welcome to Monchil</h1>
-          <p className="mb-8 text-gray-300">Connect your wallet First!</p>
-          <div className="flex flex-col gap-3">
-            {connectors
-              .filter((c) => c.name.toLowerCase().includes("meta"))
-              .map((connector) => (
-                <button
-                  key={connector.uid}
-                  onClick={() => connect({ connector })}
-                  className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-full hover:bg-purple-700 hover:scale-105 transition-all shadow-lg flex items-center justify-center gap-3"
-                >
-                  <Wallet className="w-6 h-6" />
-                  Connect with {connector.name}
-                </button>
-              ))}
-          </div>
+  return (
+    <div className="min-h-screen bg-gray-950 flex justify-center items-center p-4">
+      <div className="bg-gray-900 backdrop-blur-sm p-8 md:p-10 rounded-3xl shadow-xl text-center max-w-md w-full border-2 border-gray-800">
+        <h1 className="text-4xl font-black mb-4 text-purple-400">Welcome to Monchil</h1>
+        <p className="mb-8 text-gray-300">Connect your wallet first!</p>
+
+        <div className="flex flex-col gap-2">
+          {connectors
+            .filter(
+              (c) =>
+                c.name.toLowerCase().includes("meta") ||
+                c.name.toLowerCase().includes("walletconnect") ||
+                c.name.toLowerCase().includes("farcaster")
+            )
+            .map((connector) => (
+              <button
+                key={connector.uid}
+                onClick={() => connect({ connector })}
+                className="w-full bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-gray-700 transition flex items-center justify-center gap-2"
+              >
+                <Wallet className="w-4 h-4" />
+                Connect with {connector.name}
+              </button>
+            ))}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return (
     <div className={`relative ${activePage === 'Game' ? 'h-screen overflow-hidden' : 'min-h-screen bg-purple-700'}`}>
