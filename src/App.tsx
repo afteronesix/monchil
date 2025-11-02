@@ -1,3 +1,5 @@
+// App.tsx
+
 import { useEffect, useState, type ReactNode } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { Store, Gamepad2, Gift } from "lucide-react";

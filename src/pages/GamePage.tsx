@@ -1,3 +1,5 @@
+// GamePage.tsx
+
 import { useState } from 'react';
 import { Play, ArrowLeftRight, Keyboard, Heart, ShieldAlert, Skull } from 'lucide-react';
 import GameCanvas from '../components/GameCanvas';
