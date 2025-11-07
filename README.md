@@ -1,54 +1,162 @@
-# React + TypeScript + Vite
+# 🌌 Monchil — Web3 Playground on Monad Network
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Wagmi](https://img.shields.io/badge/wagmi-1E1E1E?logo=ethereum&logoColor=white)
+![Monad](https://img.shields.io/badge/Monad-Native%20Token%20%24MON-purple)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-Currently, two official plugins are available:
+> 🧩 A fun, modular Web3 playground built on **Monad Network** — includes NFT minting, daily faucet, and mini-games!  
+> Integrated with **Reown WalletConnect**, **Farcaster Miniapps SDK**, and powered by **Vite + React + TypeScript**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Feature | Description |
+|----------|--------------|
+| 🪙 **Wallet Connect by Reown** | Seamless wallet connection using [Reown SDK](https://reown.com) |
+| ⚡ **Monad Network Support** | Works with Monad Testnet (native token: `MON`) |
+| 🎨 **NFT Mint Template** | Mint cute Monchil NFTs — integrated with Farcaster sharing |
+| 💧 **Faucet Page** | Daily MON faucet with 24h cooldown and 3-day streak bonus |
+| 🎮 **Mini Game (NS-SHAFT)** | A simple arcade game built in React Canvas |
+| 🌐 **Web3 Hooks Ready** | Built using `wagmi` and EVM-compatible chains |
+| 🧰 **Developer Friendly** | Vite + TypeScript + Tailwind setup for fast dev experience |
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+---
+
+## 📂 Project Structure
+
+```
+monchil/
+├── src/
+│   ├── pages/
+│   │   ├── MintNFT.tsx      # NFT minting template
+│   │   ├── MyFaucet.tsx     # Faucet dApp
+│   │   └── GamePage.tsx     # NS-SHAFT mini-game
+│   ├── hooks/               # Custom wagmi hooks and ABI files
+│   ├── components/          # Shared UI components
+│   └── main.tsx             # App entry
+├── public/                  # Static assets (images, icons)
+├── package.json
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🧭 Quick Start
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Clone dan jalankan secara lokal dengan langkah berikut 👇
+
+### 1️⃣ Clone Repo
+
+```bash
+git clone https://github.com/afteronesix/monchil.git
+cd monchil
 ```
+
+### 2️⃣ Install Dependencies
+
+```bash
+npm install
+# atau
+pnpm install
+```
+
+### 3️⃣ Jalankan di Dev Mode
+
+```bash
+npm run dev
+```
+
+> App akan tersedia di [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🔗 Web3 Setup
+
+### 🪙 Supported Chain
+- **Monad Testnet**
+- Native token: `MON`
+
+### 💼 Wallet Connection
+- Uses **Reown WalletConnect**
+- Supports browser wallets (Reown, MetaMask, Rabby, etc.)
+
+### 🪞 Farcaster Integration
+- Built-in sharing using `@farcaster/miniapp-sdk`
+- Example: Mint an NFT → Auto share via Farcaster cast
+
+---
+
+## 🧱 Pages Overview
+
+### 🎨 `/mint`
+Mint your **Monchil NFT** (Happy or Sad Mon)  
+- Connect wallet → switch to Monad → mint  
+- Share minted NFT on Farcaster
+
+### 💧 `/faucet`
+Daily claim faucet for **MON test tokens**  
+- Claim every 24 hours  
+- 3-day streak = bonus reward 🎁
+
+### 🎮 `/game`
+Play the **NS-SHAFT** game!  
+- Use ← → or tap to move  
+- Avoid spikes & stay alive  
+
+---
+
+## 🛠️ Development
+
+| Command | Description |
+|----------|--------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Build production version |
+| `npm run preview` | Preview production build |
+
+---
+
+## 🤝 Contributing
+
+Contributions are **welcome & appreciated**! 🙌  
+Here’s how you can help:
+
+1. **Fork** the repo  
+2. Create a new branch  
+   ```bash
+   git checkout -b feature/awesome-update
+   ```
+3. Make your changes & commit  
+   ```bash
+   git commit -m "Add: awesome feature"
+   ```
+4. **Push** the branch  
+   ```bash
+   git push origin feature/awesome-update
+   ```
+5. Open a **Pull Request**
+
+---
+
+## 💜 Credits
+
+Made with ☕ + ❤️ by [@afteronesix](https://github.com/afteronesix)  
+Built for the **Monad** ecosystem — experiment, build, and have fun!
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** — free to use and modify.
+
+---
+
+### 🧩 Links
+
+- 🌐 Website: [monchil.vercel.app](https://monchil.vercel.app)
+- 💾 Repo: [github.com/afteronesix/monchil](https://github.com/afteronesix/monchil)
+- 🧠 Monad Docs: [docs.monad.xyz](https://docs.monad.xyz)
+- 🪩 Reown SDK: [reown.com](https://reown.com)
