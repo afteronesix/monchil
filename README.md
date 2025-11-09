@@ -36,7 +36,7 @@ monchil/
 │   ├── pages/
 │   │   ├── MintNFT.tsx      # NFT minting template
 │   │   ├── MyFaucet.tsx     # Faucet dApp
-│    │    ├── GamePage.tsx     # NS-SHAFT mini-game
+│   │   ├── GamePage.tsx     # NS-SHAFT mini-game
 │   │   └── StakePage.tsx.tsx     # StakeNFT 
 │   ├── hooks/               # Custom wagmi hooks and ABI files
 │   ├── components/          # Shared UI components
@@ -67,7 +67,7 @@ npm install
 pnpm install
 ```
 
-### 3️⃣ Jalankan di Dev Mode
+### 3️⃣ Run on Dev Mode
 
 ```bash
 npm run dev
