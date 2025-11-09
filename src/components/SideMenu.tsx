@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { BookOpen, Gamepad2, Sprout } from "lucide-react";
+import { BookOpen, Gamepad2, Sprout, PiggyBank } from "lucide-react";
 import { ConnectWallet } from "./ConnectWallet";
 
 export function SideMenu() {
@@ -21,6 +21,12 @@ export function SideMenu() {
             <BookOpen size={24} />
           </NavLink>
           <NavLink
+            to="/stake"
+            className={({ isActive }) => `${commonClass} ${isActive ? activeClass : inactiveClass}`}
+          >
+            <PiggyBank size={24} />
+          </NavLink>
+          <NavLink
             to="/game"
             className={({ isActive }) => `${commonClass} ${isActive ? activeClass : inactiveClass}`}
           >
@@ -29,7 +35,7 @@ export function SideMenu() {
         </nav>
       </div>
       <div className="w-full">
-         <ConnectWallet />
+        <ConnectWallet />
       </div>
     </aside>
   );
