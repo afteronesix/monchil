@@ -19,10 +19,12 @@
 | 🪙 **Wallet Connect by Reown** | Seamless wallet connection using [Reown SDK](https://reown.com) |
 | ⚡ **Monad Network Support** | Works with Monad Testnet (native token: `MON`) |
 | 🎨 **NFT Mint Template** | Mint cute Monchil NFTs — integrated with Farcaster sharing |
+| 💰 **NFT Stake** | Mint cute Monchil NFTs — Earn Mores MON  |
 | 💧 **Faucet Page** | Daily MON faucet with 24h cooldown and 3-day streak bonus |
 | 🎮 **Mini Game (NS-SHAFT)** | A simple arcade game built in React Canvas |
 | 🌐 **Web3 Hooks Ready** | Built using `wagmi` and EVM-compatible chains |
 | 🧰 **Developer Friendly** | Vite + TypeScript + Tailwind setup for fast dev experience |
+
 
 ---
 
@@ -34,7 +36,8 @@ monchil/
 │   ├── pages/
 │   │   ├── MintNFT.tsx      # NFT minting template
 │   │   ├── MyFaucet.tsx     # Faucet dApp
-│   │   └── GamePage.tsx     # NS-SHAFT mini-game
+│    │    ├── GamePage.tsx     # NS-SHAFT mini-game
+│   │   └── StakePage.tsx.tsx     # StakeNFT 
 │   ├── hooks/               # Custom wagmi hooks and ABI files
 │   ├── components/          # Shared UI components
 │   └── main.tsx             # App entry
@@ -47,7 +50,7 @@ monchil/
 
 ## 🧭 Quick Start
 
-Clone dan jalankan secara lokal dengan langkah berikut 👇
+Clone and run locally with the following steps 👇
 
 ### 1️⃣ Clone Repo
 
@@ -60,7 +63,7 @@ cd monchil
 
 ```bash
 npm install
-# atau
+# or
 pnpm install
 ```
 
@@ -70,7 +73,7 @@ pnpm install
 npm run dev
 ```
 
-> App akan tersedia di [http://localhost:5173](http://localhost:5173)
+> The app will be available on [http://localhost:5173](http://localhost:5173)
 
 ---
 
