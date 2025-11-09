@@ -228,6 +228,10 @@ export function StakePage() {
     <div className="flex items-center justify-start min-h-screen p-4 pt-16">
       <div className="bg-gray-900 border-purple-700 rounded-2xl shadow-lg p-6 max-w-4xl w-full text-center mx-auto">
         <h1 className="text-4xl font-bold text-purple-600 mb-4">Stake Your Monchil</h1>
+        
+        <p className="text-lg text-gray-300 mb-6">
+          Earn 0.05 MON per 1 NFT staked, every 24 hours.
+        </p>
 
         {!isConnected ? (
            <p className="text-gray-500 mt-4">Connect your wallet to get started.</p>
