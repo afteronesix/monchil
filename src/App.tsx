@@ -1,10 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { Store, Gamepad2, Gift, PiggyBank } from "lucide-react";
+import { Store, Gamepad2, PiggyBank } from "lucide-react";
 import Account from "./hooks/account";
 import { MintNFT } from "./pages/MintNFT";
 import GamePage from "./pages/GamePage";
-import { MyFaucet } from "./pages/MyFaucet";
 import { StakePage } from "./pages/StakePage";
 
 type MenuItem = {
@@ -26,14 +25,25 @@ export default function App() {
   }, []);
 
   const menuItems: MenuItem[] = [
-    { name: "Mint", icon: <Store className="w-5 h-5" />, component: <MintNFT /> },
-    { name: "Stake", icon: <PiggyBank className="w-5 h-5" />, component: <StakePage /> },
-    { name: "Faucet", icon: <Gift className="w-5 h-5" />, component: <MyFaucet /> },
-    { name: "Game", icon: <Gamepad2 className="w-5 h-5" />, component: <GamePage /> },
+    {
+      name: "Mint",
+      icon: <Store className="w-5 h-5" />,
+      component: <MintNFT />,
+    },
+    {
+      name: "Stake",
+      icon: <PiggyBank className="w-5 h-5" />,
+      component: <StakePage />,
+    },
+    {
+      name: "Game",
+      icon: <Gamepad2 className="w-5 h-5" />,
+      component: <GamePage />,
+    },
   ];
 
-  const ActiveComponent =
-    menuItems.find((item) => item.name === activePage)?.component || <MintNFT />;
+  const ActiveComponent = menuItems.find((item) => item.name === activePage)
+    ?.component || <MintNFT />;
 
   return (
     <div

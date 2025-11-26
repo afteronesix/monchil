@@ -1,23 +1,23 @@
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { defineChain } from "@reown/appkit/networks";
-import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
+import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 
 const monad = defineChain({
-  id: 10143,
-  caipNetworkId: "eip155:10143",
+  id: 143,
+  caipNetworkId: "eip155:143",
   chainNamespace: "eip155",
-  name: "Monad Testnet",
+  name: "Monad",
   nativeCurrency: {
     decimals: 18,
     name: "Monad",
     symbol: "MON",
   },
   rpcUrls: {
-    default: { http: ["https://testnet-rpc.monad.xyz"] },
+    default: { http: ["https://rpc3.monad.xyz"] },
   },
   blockExplorers: {
-    default: { name: "MonadScan", url: "https://explorer.monad.xyz" },
+    default: { name: "MonadScan", url: "https://monadscan.com/" },
   },
 });
 
@@ -27,9 +27,7 @@ export const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks: [monad],
   ssr: true,
-  connectors: [
-    miniAppConnector(),
-  ],
+  connectors: [miniAppConnector()],
 });
 
 createAppKit({

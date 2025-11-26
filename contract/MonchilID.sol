@@ -13,9 +13,9 @@ contract Monchil is ERC1155, Ownable {
 
     string private constant BASE_URI = "https://gateway.lighthouse.storage/ipfs/bafybeiepr4zvwxo5zbrzzbk7ih257sfiuxbrr2yjiwxtuap3c5kmhd5fsq/";
 
-    uint256 public constant MINT_PRICE = 0.5 ether;
+    uint256 public constant MINT_PRICE = 1 ether;
 
-    uint256 public constant MAX_SUPPLY_PER_ID = 5_000_000;
+    uint256 public constant MAX_SUPPLY_PER_ID = 2_500;
 
     mapping(uint256 => uint256) private _totalSupply;
 

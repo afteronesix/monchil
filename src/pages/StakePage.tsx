@@ -5,17 +5,16 @@ import {
   useAccount,
   useReadContracts,
   useWriteContract,
-  useSwitchChain,
-  useChainId,
 } from "wagmi";
-import { monadTestnet } from "wagmi/chains";
 import { abi as abiNFT } from "../hooks/abiNFT";
 import { abi as abiSTAKE } from "../hooks/abiSTAKE";
 import { toast } from "react-toastify";
 import { formatEther } from "viem";
 
-const NFT_CONTRACT_ADDRESS: `0x${string}` = "0x8162454d056D50FD2f4A3eb2Ab52bBA9978f4CfA"; 
-const STAKING_CONTRACT_ADDRESS: `0x${string}` = "0x6cbcA6C11133Adb5510e6A9C49b6EF6cB8ed97E6"; 
+const NFT_CONTRACT_ADDRESS: `0x${string}` =
+  "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
+const STAKING_CONTRACT_ADDRESS: `0x${string}` =
+  "0x76F201E7e27Da0dC2EB2c610Cd224380493bb029";
 
 const nftTypes = {
   happy: {
@@ -45,33 +44,16 @@ type StakeModuleProps = {
   onUnstake: (tokenId: number, amount: number) => void;
 };
 
-function StakeModule({ nft, walletBalance, stakedBalance, isPending, onStake, onUnstake }: StakeModuleProps) {
+function StakeModule({
+  nft,
+  walletBalance,
+  stakedBalance,
+  isPending,
+  onStake,
+  onUnstake,
+}: StakeModuleProps) {
   const [stakeAmount, setStakeAmount] = useState(1);
   const [unstakeAmount, setUnstakeAmount] = useState(1);
-
-  const handleStake = () => {
-    if (stakeAmount > walletBalance) {
-      toast.error(`You only have ${walletBalance} ${nft.name} in your wallet.`);
-      return;
-    }
-    if (stakeAmount <= 0) {
-      toast.error("Amount must be greater than 0");
-      return;
-    }
-    onStake(nft.id, stakeAmount);
-  };
-  
-  const handleUnstake = () => {
-    if (unstakeAmount > stakedBalance) {
-      toast.error(`You only have ${stakedBalance} ${nft.name} staked.`);
-      return;
-    }
-    if (unstakeAmount <= 0) {
-      toast.error("Amount must be greater than 0");
-      return;
-    }
-    onUnstake(nft.id, unstakeAmount);
-  };
 
   return (
     <div className="bg-gray-800 border border-purple-700 rounded-2xl p-4 w-full md:w-80">
@@ -81,22 +63,29 @@ function StakeModule({ nft, walletBalance, stakedBalance, isPending, onStake, on
         alt={nft.name}
         className="rounded-xl border-4 border-pink-200 shadow-md mb-3 w-48 h-48 object-cover mx-auto"
       />
-      
+
       <div className="text-left mb-4">
-        <p className="text-white">In Wallet: <strong className="text-pink-400">{walletBalance}</strong></p>
-        <p className="text-white">Staked: <strong className="text-purple-400">{stakedBalance}</strong></p>
+        <p className="text-white">
+          In Wallet: <strong className="text-pink-400">{walletBalance}</strong>
+        </p>
+        <p className="text-white">
+          Staked: <strong className="text-purple-400">{stakedBalance}</strong>
+        </p>
       </div>
 
+      {/* Stake */}
       <div className="space-y-2 mb-4">
-        <input 
+        <input
           type="number"
           min="1"
           value={stakeAmount}
-          onChange={(e) => setStakeAmount(Math.max(1, parseInt(e.target.value) || 1))}
+          onChange={(e) =>
+            setStakeAmount(Math.max(1, parseInt(e.target.value) || 1))
+          }
           className="w-full bg-gray-700 text-white p-2 rounded-lg text-center"
         />
         <button
-          onClick={handleStake}
+          onClick={() => onStake(nft.id, stakeAmount)}
           disabled={isPending || walletBalance === 0}
           className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition disabled:opacity-50"
         >
@@ -104,16 +93,19 @@ function StakeModule({ nft, walletBalance, stakedBalance, isPending, onStake, on
         </button>
       </div>
 
+      {/* Unstake */}
       <div className="space-y-2">
-        <input 
+        <input
           type="number"
           min="1"
           value={unstakeAmount}
-          onChange={(e) => setUnstakeAmount(Math.max(1, parseInt(e.target.value) || 1))}
+          onChange={(e) =>
+            setUnstakeAmount(Math.max(1, parseInt(e.target.value) || 1))
+          }
           className="w-full bg-gray-700 text-white p-2 rounded-lg text-center"
         />
         <button
-          onClick={handleUnstake}
+          onClick={() => onUnstake(nft.id, unstakeAmount)}
           disabled={isPending || stakedBalance === 0}
           className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl shadow-md transition disabled:opacity-50"
         >
@@ -126,12 +118,13 @@ function StakeModule({ nft, walletBalance, stakedBalance, isPending, onStake, on
 
 export function StakePage() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
 
   const nftContract = { abi: abiNFT, address: NFT_CONTRACT_ADDRESS } as const;
-  const stakeContract = { abi: abiSTAKE, address: STAKING_CONTRACT_ADDRESS } as const;
+  const stakeContract = {
+    abi: abiSTAKE,
+    address: STAKING_CONTRACT_ADDRESS,
+  } as const;
 
   const { data, refetch } = useReadContracts({
     contracts: [
@@ -146,7 +139,7 @@ export function StakePage() {
     query: {
       enabled: isConnected && !!address,
       refetchInterval: 10000,
-    }
+    },
   });
 
   const [
@@ -156,32 +149,24 @@ export function StakePage() {
     sadStakeInfo,
     happyRewards,
     sadRewards,
-    isApproved
-  ] = data?.map(d => (d.status === 'success' ? d.result : null)) || [];
+    isApproved,
+  ] = data?.map((d) => (d.status === "success" ? d.result : null)) || [];
 
   const happyInWallet = Number(happyBalance || 0);
   const sadInWallet = Number(sadBalance || 0);
   const happyStaked = Number((happyStakeInfo as readonly [bigint, bigint])?.[0] || 0);
   const sadStaked = Number((sadStakeInfo as readonly [bigint, bigint])?.[0] || 0);
-  const pendingHappyEth = happyRewards ? formatEther(happyRewards as bigint) : "0.0";
+
+  const pendingHappyEth = happyRewards
+    ? formatEther(happyRewards as bigint)
+    : "0.0";
   const pendingSadEth = sadRewards ? formatEther(sadRewards as bigint) : "0.0";
+
   const isStakingApproved = Boolean(isApproved);
 
-  const handleSwitchChain = async () => {
-    try {
-      await switchChain({ chainId: monadTestnet.id });
-      toast.success("Switched to Monad Testnet");
-    } catch (error) {
-      toast.error("Failed to switch chain");
-    }
-  };
-
+  
   const handleApprove = async () => {
     if (!address) return toast.error("Wallet not connected");
-    if (chainId !== monadTestnet.id) {
-      toast.warning("Please switch to Monad Testnet first!");
-      return;
-    }
 
     toast.info("Sending approval transaction...");
     try {
@@ -190,129 +175,159 @@ export function StakePage() {
         functionName: "setApprovalForAll",
         args: [STAKING_CONTRACT_ADDRESS, true],
       });
-      toast.success("Approval successful! You can now stake.");
+      toast.success("Approval successful!");
       refetch();
-    } catch (err) {
+    } catch (e) {
       toast.error("Approval failed.");
-      console.error(err);
+      console.error(e);
     }
   };
 
   const handleContractInteraction = async (
-    functionName: 'stake' | 'unstake' | 'claimReward',
+    functionName: "stake" | "unstake" | "claimReward",
     args: [bigint, bigint] | [bigint],
     successMessage: string
   ) => {
     if (!address) return toast.error("Wallet not connected");
-    if (chainId !== monadTestnet.id) {
-      toast.warning("Please switch to Monad Testnet first!");
-      return;
-    }
-    
+
     toast.info("Sending transaction...");
     try {
       await writeContractAsync({
         ...stakeContract,
-        functionName: functionName,
+        functionName,
         args: args as any,
       });
       toast.success(successMessage);
       refetch();
-    } catch (err) {
+    } catch (e) {
       toast.error("Transaction failed.");
-      console.error(err);
+      console.error(e);
     }
   };
 
   return (
     <div className="flex items-center justify-start min-h-screen p-4 pt-16">
       <div className="bg-gray-900 border-purple-700 rounded-2xl shadow-lg p-6 max-w-4xl w-full text-center mx-auto">
-        <h1 className="text-4xl font-bold text-purple-600 mb-4">Stake Your Monchil</h1>
-        
-        <p className="text-lg text-gray-300 mb-6">
-          Earn 0.05 MON per 1 NFT staked, every 24 hours.
-        </p>
+        <h1 className="text-4xl font-bold text-purple-600 mb-4">
+          Stake Your Monchil
+        </h1>
 
         {!isConnected ? (
-           <p className="text-gray-500 mt-4">Connect your wallet to get started.</p>
-        ) : chainId !== monadTestnet.id ? (
-          <button
-            onClick={handleSwitchChain}
-            className="mb-6 bg-yellow-400 text-yellow-900 py-2 px-4 rounded-lg font-bold shadow-md hover:bg-yellow-500 transition-colors"
-          >
-            Switch to Monad
-          </button>
+          <p className="text-gray-500 mt-4">Connect your wallet to start.</p>
         ) : !isStakingApproved ? (
           <div className="bg-gray-800 rounded-lg p-6 text-center">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4">Approval Required</h2>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4">
+              Approval Required
+            </h2>
             <p className="text-gray-300 mb-6">
-              You must first approve the staking contract to interact with your Monchil NFTs. This is a one-time transaction.
+              Approve staking contract before staking your NFTs.
             </p>
             <button
               onClick={handleApprove}
               disabled={isPending}
               className="w-full max-w-xs mx-auto bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-xl shadow-md transition disabled:opacity-50"
             >
-              {isPending ? "Approving..." : "Approve Staking"}
+              {isPending ? "Approving..." : "Approve"}
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            
-            <div className="bg-gray-800 border border-purple-700 rounded-2xl p-4">
-              <h2 className="text-2xl font-bold text-purple-400 mb-4">Your Rewards</h2>
+          <>
+            {/* Rewards */}
+            <div className="bg-gray-800 border border-purple-700 rounded-2xl p-4 mb-6">
+              <h2 className="text-2xl font-bold text-purple-400 mb-4">
+                Your Rewards
+              </h2>
+
               <div className="flex flex-col md:flex-row justify-around gap-4">
-                
+                {/* Happy */}
                 <div className="flex-1 bg-gray-900 p-3 rounded-lg">
                   <p className="text-sm text-gray-400">Happy Mon Rewards</p>
                   <p className="text-2xl font-bold text-yellow-400 truncate">
                     {parseFloat(pendingHappyEth).toFixed(6)} MON
                   </p>
                   <button
-                    onClick={() => handleContractInteraction('claimReward', [BigInt(1)], "Happy Mon rewards claimed!")}
+                    onClick={() =>
+                      handleContractInteraction(
+                        "claimReward",
+                        [BigInt(1)],
+                        "Happy Mon rewards claimed!"
+                      )
+                    }
                     disabled={isPending || parseFloat(pendingHappyEth) === 0}
                     className="mt-2 w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-lg shadow-md transition disabled:opacity-50"
                   >
                     Claim
                   </button>
                 </div>
-                
+
+                {/* Sad */}
                 <div className="flex-1 bg-gray-900 p-3 rounded-lg">
                   <p className="text-sm text-gray-400">Sad Mon Rewards</p>
                   <p className="text-2xl font-bold text-yellow-400 truncate">
                     {parseFloat(pendingSadEth).toFixed(6)} MON
                   </p>
                   <button
-                    onClick={() => handleContractInteraction('claimReward', [BigInt(2)], "Sad Mon rewards claimed!")}
+                    onClick={() =>
+                      handleContractInteraction(
+                        "claimReward",
+                        [BigInt(2)],
+                        "Sad Mon rewards claimed!"
+                      )
+                    }
                     disabled={isPending || parseFloat(pendingSadEth) === 0}
                     className="mt-2 w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-lg shadow-md transition disabled:opacity-50"
                   >
                     Claim
                   </button>
                 </div>
-
               </div>
             </div>
 
+            {/* Modules */}
             <div className="flex flex-col md:flex-row justify-center items-start gap-8">
-              <StakeModule 
+              <StakeModule
                 nft={nftTypes.happy}
                 walletBalance={happyInWallet}
                 stakedBalance={happyStaked}
                 isPending={isPending}
-                onStake={(tokenId, amount) => handleContractInteraction('stake', [BigInt(tokenId), BigInt(amount)], "Stake successful!")}
-                onUnstake={(tokenId, amount) => handleContractInteraction('unstake', [BigInt(tokenId), BigInt(amount)], "Unstake successful!")}
+                onStake={(tokenId, amount) =>
+                  handleContractInteraction(
+                    "stake",
+                    [BigInt(tokenId), BigInt(amount)],
+                    "Stake successful!"
+                  )
+                }
+                onUnstake={(tokenId, amount) =>
+                  handleContractInteraction(
+                    "unstake",
+                    [BigInt(tokenId), BigInt(amount)],
+                    "Unstake successful!"
+                  )
+                }
               />
-              <StakeModule 
+
+              <StakeModule
                 nft={nftTypes.sad}
                 walletBalance={sadInWallet}
                 stakedBalance={sadStaked}
                 isPending={isPending}
-                onStake={(tokenId, amount) => handleContractInteraction('stake', [BigInt(tokenId), BigInt(amount)], "Stake successful!")}
-                onUnstake={(tokenId, amount) => handleContractInteraction('unstake', [BigInt(tokenId), BigInt(amount)], "Unstake successful!")}
+                onStake={(tokenId, amount) =>
+                  handleContractInteraction(
+                    "stake",
+                    [BigInt(tokenId), BigInt(amount)],
+                    "Stake successful!"
+                  )
+                }
+                onUnstake={(tokenId, amount) =>
+                  handleContractInteraction(
+                    "unstake",
+                    [BigInt(tokenId), BigInt(amount)],
+                    "Unstake successful!"
+                  )
+                }
               />
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
