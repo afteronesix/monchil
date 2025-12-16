@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
-import { abi } from "../hooks/abiNFT";
+import { abi } from "../hooks/abi/abiNFT";
 import { toast } from "react-toastify";
 
 const CONTRACT_ADDRESS: `0x${string}` =

@@ -1,263 +1,338 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
-import { abi as abiNFT } from "../hooks/abiNFT";
-import { abi as abiSTAKE } from "../hooks/abiSTAKE";
+import { abi as abiNFT } from "../hooks/abi/abiNFT";
+import { abi as abiSTAKE } from "../hooks/abi/abiSTAKE";
+import { monchilIdAbi } from "../hooks/abi/AbiMonchilID";
+import { abiNEWSTAKE } from "../hooks/abi/abiStaker";
 import { toast } from "react-toastify";
 import { formatEther } from "viem";
+import { PiggyBank } from "lucide-react";
 
-const NFT_CONTRACT_ADDRESS: `0x${string}` =
-  "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
-const STAKING_CONTRACT_ADDRESS: `0x${string}` =
-  "0x76F201E7e27Da0dC2EB2c610Cd224380493bb029";
+const OLD_NFT_CONTRACT: `0x${string}` = "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
+const OLD_STAKING_CONTRACT: `0x${string}` = "0x76F201E7e27Da0dC2EB2c610Cd224380493bb029";
+const NEW_NFT_CONTRACT: `0x${string}` = "0x5f052CC161d117154CA4FED968EA037bF9cE4F02";
+const NEW_STAKING_CONTRACT: `0x${string}` = "0x506fC18fe0694bA815087d56D505d5802602bc9A";
 
-const nftTypes = {
-  happy: { id: 1, name: "Happy Mon", image: "/happy.png" },
-  sad: { id: 2, name: "Sad Mon", image: "/sad.png" },
+const NFT_MAPPING = {
+    old1: { id: 1, name: "Happy Mon Lv 0", image: "/happy.png", contract: OLD_NFT_CONTRACT, staking: OLD_STAKING_CONTRACT, isOld: true },
+    old2: { id: 2, name: "Sad Mon Lv 0", image: "/sad.png", contract: OLD_NFT_CONTRACT, staking: OLD_STAKING_CONTRACT, isOld: true },
+    new1: { id: 1, name: "Monchil Lv 1", image: "/1.png", contract: NEW_NFT_CONTRACT, staking: NEW_STAKING_CONTRACT, isOld: false },
+    new2: { id: 2, name: "Monchil Lv 2", image: "/2.png", contract: NEW_NFT_CONTRACT, staking: NEW_STAKING_CONTRACT, isOld: false },
 } as const;
 
-type NFTKey = keyof typeof nftTypes;
+type CardKey = keyof typeof NFT_MAPPING;
 
 export function StakePage() {
-  const [selected, setSelected] = useState<NFTKey>("happy");
-  const [stakeAmount, setStakeAmount] = useState(1);
-  const [unstakeAmount, setUnstakeAmount] = useState(1);
+    const [selectedCardId, setSelectedCardId] = useState<CardKey | null>(null);
+    const [stakeAmount, setStakeAmount] = useState(1);
+    const [unstakeAmount, setUnstakeAmount] = useState(1);
 
-  const { address } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+    const { address, isConnected } = useAccount();
+    const { writeContractAsync } = useWriteContract();
+    
+    const selectedNft = selectedCardId ? NFT_MAPPING[selectedCardId] : null;
 
-  const nftContract = { abi: abiNFT, address: NFT_CONTRACT_ADDRESS };
-  const stakeContract = { abi: abiSTAKE, address: STAKING_CONTRACT_ADDRESS };
+    const addressOrDefault = address ?? "0x0000000000000000000000000000000000000000";
 
-  const { data, refetch } = useReadContracts({
-    contracts: [
-      {
-        ...nftContract,
-        functionName: "balanceOf",
-        args: [address ?? "0x0", 1n],
-      },
-      {
-        ...nftContract,
-        functionName: "balanceOf",
-        args: [address ?? "0x0", 2n],
-      },
-      {
-        ...stakeContract,
-        functionName: "userStakes",
-        args: [address ?? "0x0", 1n],
-      },
-      {
-        ...stakeContract,
-        functionName: "userStakes",
-        args: [address ?? "0x0", 2n],
-      },
-      {
-        ...stakeContract,
-        functionName: "calculatePendingRewards",
-        args: [address ?? "0x0", 1n],
-      },
-      {
-        ...stakeContract,
-        functionName: "calculatePendingRewards",
-        args: [address ?? "0x0", 2n],
-      },
-      {
-        ...nftContract,
-        functionName: "isApprovedForAll",
-        args: [address ?? "0x0", STAKING_CONTRACT_ADDRESS],
-      },
-    ],
-    query: { enabled: !!address, refetchInterval: 2000 },
-  });
+    const contracts = useMemo(() => {
+        const reads: any[] = [];
+        const keys: CardKey[] = ['old1', 'old2', 'new1', 'new2'];
 
-  const result = (data ?? []).map((r: any) =>
-    r?.status === "success" ? r.result : null
-  );
+        reads.push({ abi: abiSTAKE, address: OLD_STAKING_CONTRACT, functionName: "rewardRatePerDay", args: [] });
 
-  const happyBal = Number(result[0] ?? 0);
-  const sadBal = Number(result[1] ?? 0);
+        keys.forEach(key => {
+            const nft = NFT_MAPPING[key];
+            const nftAbi = nft.isOld ? abiNFT : monchilIdAbi;
+            const stakeAbi = nft.isOld ? abiSTAKE : abiNEWSTAKE;
 
-  const getStake = (v: any) => (Array.isArray(v) && v[0] ? Number(v[0]) : 0);
+            reads.push({ abi: nftAbi, address: nft.contract, functionName: "balanceOf", args: [addressOrDefault, BigInt(nft.id)] });
+            reads.push({ abi: stakeAbi, address: nft.staking, functionName: "userStakes", args: [addressOrDefault, BigInt(nft.id)] });
+            reads.push({ abi: stakeAbi, address: nft.staking, functionName: "calculatePendingRewards", args: [addressOrDefault, BigInt(nft.id)] });
+            reads.push({ abi: nftAbi, address: nft.contract, functionName: "isApprovedForAll", args: [addressOrDefault, nft.staking] });
+        });
 
-  const happyStaked = getStake(result[2]);
-  const sadStaked = getStake(result[3]);
+        keys.forEach(key => {
+            if (!NFT_MAPPING[key].isOld) {
+                 reads.push({ abi: abiNEWSTAKE, address: NEW_STAKING_CONTRACT, functionName: "rewardRatesPerDay", args: [BigInt(NFT_MAPPING[key].id)] });
+            }
+        });
+        
+        return reads;
+    }, [addressOrDefault]);
 
-  const toBig = (v: any) => (typeof v === "bigint" ? v : 0n);
+    const { data: contractData, refetch } = useReadContracts({
+        contracts: contracts,
+        query: { enabled: isConnected, refetchInterval: 5000 },
+    });
 
-  const rewardHappy = parseFloat(formatEther(toBig(result[4])));
-  const rewardSad = parseFloat(formatEther(toBig(result[5])));
+    const results = useMemo(() => {
+        const data = contractData?.map((r: any) => r?.status === "success" ? r.result : null) ?? [];
+        
+        const oldGlobalRateWei = data[0] as bigint;
+        const oldGlobalRate = parseFloat(formatEther(oldGlobalRateWei ?? 0n));
 
-  const approved = result[6] === true;
+        const parsed: { [key in CardKey]: { wallet: number, staked: number, reward: number, approved: boolean, dailyRate: number } } = {} as any;
+        const keys: CardKey[] = ['old1', 'old2', 'new1', 'new2'];
+        
+        const getStake = (v: any) => (Array.isArray(v) && v[0] ? Number(v[0]) : 0);
+        const toBig = (v: any) => (typeof v === "bigint" ? v : 0n);
 
-  const nft = nftTypes[selected];
-  const walletBalance = selected === "happy" ? happyBal : sadBal;
-  const stakedBalance = selected === "happy" ? happyStaked : sadStaked;
-  const pendingReward = selected === "happy" ? rewardHappy : rewardSad;
+        const startIndex = 1; 
+        const newRateReadStart = startIndex + (keys.length * 4);
+        let newRateIndex = newRateReadStart;
 
-  const handleApprove = async () => {
-    if (!address) return toast.error("Wallet not connected");
-    try {
-      await writeContractAsync({
-        ...nftContract,
-        functionName: "setApprovalForAll",
-        args: [STAKING_CONTRACT_ADDRESS, true],
-      });
-      toast.success("Approved!");
-      refetch();
-    } catch {
-      toast.error("Approve failed");
-    }
-  };
+        keys.forEach((key, index) => {
+            const i = startIndex + (index * 4);
+            const nft = NFT_MAPPING[key];
+            
+            let dailyRate = 0;
+            if (nft.isOld) {
+                dailyRate = oldGlobalRate;
+            } else {
+                const rateWei = toBig(data[newRateIndex]);
+                dailyRate = parseFloat(formatEther(rateWei));
+                newRateIndex++;
+            }
 
-  const callStake = async (amount: number) => {
-    try {
-      await writeContractAsync({
-        ...stakeContract,
-        functionName: "stake",
-        args: [BigInt(nft.id), BigInt(amount)],
-      });
-      toast.success("Staked!");
-      refetch();
-    } catch {
-      toast.error("Stake failed");
-    }
-  };
+            parsed[key] = {
+                wallet: Number(data[i] ?? 0),
+                staked: getStake(data[i + 1]),
+                reward: parseFloat(formatEther(toBig(data[i + 2]))),
+                approved: data[i + 3] === true,
+                dailyRate: dailyRate,
+            };
+        });
+        return parsed;
+    }, [contractData]);
 
-  const callUnstake = async (amount: number) => {
-    try {
-      await writeContractAsync({
-        ...stakeContract,
-        functionName: "unstake",
-        args: [BigInt(nft.id), BigInt(amount)],
-      });
-      toast.success("Unstaked!");
-      refetch();
-    } catch {
-      toast.error("Unstake failed");
-    }
-  };
 
-  const callClaim = async () => {
-    try {
-      await writeContractAsync({
-        ...stakeContract,
-        functionName: "claimReward",
-        args: [BigInt(nft.id)],
-      });
-      toast.success("Reward claimed!");
-      refetch();
-    } catch {
-      toast.error("Claim failed");
-    }
-  };
+    const handleApprove = async () => {
+        if (!address || !selectedNft) return toast.error("Select NFT and connect wallet");
 
-  return (
-    <div className="min-h-screen flex flex-col items-center pt-20 p-4">
-      <div className="bg-gray-900 p-6 rounded-2xl shadow-xl border border-purple-700 max-w-md w-full text-center mb-6">
-        <h1 className="text-3xl font-bold text-purple-600 mb-5">
-          Select NFT Type
-        </h1>
+        const nftAbi = selectedNft.isOld ? abiNFT : monchilIdAbi;
+        
+        try {
+            await writeContractAsync({
+                abi: nftAbi,
+                address: selectedNft.contract,
+                functionName: "setApprovalForAll",
+                args: [selectedNft.staking, true],
+            });
+            toast.success("Approved!");
+            refetch();
+        } catch {
+            toast.error("Approve failed");
+        }
+    };
 
-        <div className="flex justify-center gap-6 mb-4">
-          {(["happy", "sad"] as NFTKey[]).map((key) => (
-            <button
-              key={key}
-              onClick={() => setSelected(key)}
-              className={`px-5 py-3 rounded-xl font-semibold transition border
-                ${
-                  selected === key
-                    ? "bg-purple-600 border-purple-300 text-white"
-                    : "bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
-                }`}
+    const callStake = async (amount: number) => {
+        if (!address || !selectedNft) return toast.error("Select NFT and connect wallet");
+
+        const stakeAbi = selectedNft.isOld ? abiSTAKE : abiNEWSTAKE;
+        
+        try {
+            await writeContractAsync({
+                abi: stakeAbi,
+                address: selectedNft.staking,
+                functionName: "stake",
+                args: [BigInt(selectedNft.id), BigInt(amount)],
+            });
+            toast.success("Staked!");
+            refetch();
+        } catch {
+            toast.error("Stake failed");
+        }
+    };
+
+    const callUnstake = async (amount: number) => {
+        if (!address || !selectedNft) return toast.error("Select NFT and connect wallet");
+
+        const stakeAbi = selectedNft.isOld ? abiSTAKE : abiNEWSTAKE;
+
+        try {
+            await writeContractAsync({
+                abi: stakeAbi,
+                address: selectedNft.staking,
+                functionName: "unstake",
+                args: [BigInt(selectedNft.id), BigInt(amount)],
+            });
+            toast.success("Unstaked!");
+            refetch();
+        } catch {
+            toast.error("Unstake failed");
+        }
+    };
+
+    const callClaim = async () => {
+        if (!address || !selectedNft) return toast.error("Select NFT and connect wallet");
+
+        const stakeAbi = selectedNft.isOld ? abiSTAKE : abiNEWSTAKE;
+
+        try {
+            await writeContractAsync({
+                abi: stakeAbi,
+                address: selectedNft.staking,
+                functionName: "claimReward",
+                args: [BigInt(selectedNft.id)],
+            });
+            toast.success("Reward claimed!");
+            refetch();
+        } catch {
+            toast.error("Claim failed");
+        }
+    };
+
+    const renderNftCard = (key: CardKey) => {
+        const nft = NFT_MAPPING[key];
+        const data = results[key];
+        const isSelected = selectedCardId === key;
+
+        return (
+            <div
+                key={key}
+                onClick={() => isConnected ? setSelectedCardId(key) : null}
+                className={`relative bg-gray-800 rounded-xl p-3 transition transform duration-300 shadow-lg 
+                    ${isConnected ? 'cursor-pointer hover:scale-[1.03]' : 'opacity-60 cursor-default'}
+                    ${isSelected ? 'border-4 border-pink-500 ring-2 ring-pink-500' : 'border border-gray-700'}
+                `}
             >
-              {nftTypes[key].name}
-            </button>
-          ))}
-        </div>
-
-        <img
-          src={nft.image}
-          className="w-40 h-40 object-cover rounded-xl mx-auto border-4 border-purple-500 shadow-lg"
-        />
-      </div>
-
-      {/* REWARD + STAKE CARD */}
-      <div className="bg-gray-900 p-6 rounded-2xl shadow-xl border border-purple-800 max-w-md w-full text-center">
-        <h2 className="text-2xl font-bold text-purple-300 mb-4">
-          Your {nft.name}
-        </h2>
-
-        <div className="grid grid-cols-3 gap-3 text-center mb-6">
-          <div className="bg-gray-800 p-3 rounded-xl">
-            <p className="text-gray-400 text-sm">Wallet</p>
-            <p className="text-pink-400 text-xl font-bold">{walletBalance}</p>
-          </div>
-          <div className="bg-gray-800 p-3 rounded-xl">
-            <p className="text-gray-400 text-sm">Staked</p>
-            <p className="text-purple-400 text-xl font-bold">{stakedBalance}</p>
-          </div>
-          <div className="bg-gray-800 p-3 rounded-xl">
-            <p className="text-gray-400 text-sm">Reward</p>
-            <p className="text-yellow-400 text-xl font-bold">
-              {pendingReward.toFixed(4)}
-            </p>
-          </div>
-        </div>
-
-        {!approved ? (
-          <button
-            onClick={handleApprove}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-xl font-bold"
-          >
-            Approve Staking
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={callClaim}
-              disabled={pendingReward === 0}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-xl font-bold mb-5"
-            >
-              Claim Reward
-            </button>
-
-            <div className="flex gap-2 mb-4">
-              <input
-                type="number"
-                min={1}
-                value={stakeAmount}
-                onChange={(e) =>
-                  setStakeAmount(parseInt(e.target.value || "1"))
-                }
-                className="w-20 bg-gray-800 text-white p-2 rounded-lg text-center"
-              />
-              <button
-                onClick={() => callStake(stakeAmount)}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-bold"
-              >
-                Stake
-              </button>
+                <img 
+                    src={nft.image} 
+                    alt={nft.name} 
+                    className="w-full h-auto rounded-lg mb-2 object-cover" 
+                />
+                <p className="text-sm font-semibold text-white truncate">{nft.name}</p>
+                <p className="text-xs text-gray-400">Wallet: {data.wallet}</p> 
+                <p className="text-xs text-purple-400">Staked: {data.staked}</p>
             </div>
+        );
+    };
 
-            <div className="flex gap-2">
-              <input
-                type="number"
-                min={1}
-                value={unstakeAmount}
-                onChange={(e) =>
-                  setUnstakeAmount(parseInt(e.target.value || "1"))
-                }
-                className="w-20 bg-gray-800 text-white p-2 rounded-lg text-center"
-              />
-              <button
-                onClick={() => callUnstake(unstakeAmount)}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-bold"
-              >
-                Unstake
-              </button>
+    const renderActionPanel = () => {
+        if (!isConnected) {
+            return <p className="text-gray-400">Connect your wallet to see staking options.</p>;
+        }
+        
+        if (!selectedNft) {
+            return <p className="text-gray-400">Select an NFT card to manage staking.</p>;
+        }
+
+        const data = results[selectedCardId!];
+        const stakeAmountValid = stakeAmount > 0 && stakeAmount <= data.wallet;
+        const unstakeAmountValid = unstakeAmount > 0 && unstakeAmount <= data.staked;
+        const rewardValid = data.reward > 0.0001;
+        
+        const formattedDailyRate = data.dailyRate.toFixed(2);
+
+        return (
+            <div className="bg-gray-700 p-4 rounded-xl text-left">
+                <h3 className="text-xl font-bold text-pink-400 mb-3 flex items-center gap-2">
+                    <PiggyBank className="w-5 h-5"/> {selectedNft.name} Staking
+                </h3>
+
+                <div className="text-sm bg-gray-800 p-3 rounded-lg mb-4">
+                    <p className="text-gray-400">
+                        Daily Reward per NFT: 
+                        <span className="font-bold text-yellow-400 ml-1">
+                            {formattedDailyRate} $MON
+                        </span>
+                    </p>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 text-center mb-6">
+                    <div className="bg-gray-800 p-3 rounded-xl">
+                        <p className="text-gray-400 text-xs">Wallet</p>
+                        <p className="text-white text-lg font-bold">{data.wallet}</p>
+                    </div>
+                    <div className="bg-gray-800 p-3 rounded-xl">
+                        <p className="text-gray-400 text-xs">Staked</p>
+                        <p className="text-purple-400 text-lg font-bold">{data.staked}</p>
+                    </div>
+                    <div className="bg-gray-800 p-3 rounded-xl">
+                        <p className="text-gray-400 text-xs">Pending Reward</p>
+                        <p className="text-yellow-400 text-lg font-bold">
+                            {data.reward.toFixed(4)} $MON
+                        </p>
+                    </div>
+                </div>
+
+                {!data.approved ? (
+                    <button
+                        onClick={handleApprove}
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-3 rounded-xl font-bold transition"
+                    >
+                        Approve NFT for Staking
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            onClick={callClaim}
+                            disabled={!rewardValid}
+                            className={`w-full py-2 rounded-xl font-bold mb-4 transition 
+                                ${rewardValid ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                        >
+                            Claim {data.reward.toFixed(4)} $MON
+                        </button>
+
+                        <div className="flex gap-2 mb-4">
+                            <input
+                                type="number"
+                                min={1}
+                                value={stakeAmount}
+                                onChange={(e) => setStakeAmount(Math.max(1, parseInt(e.target.value || "1")))}
+                                className="w-20 bg-gray-800 text-white p-2 rounded-lg text-center"
+                            />
+                            <button
+                                onClick={() => callStake(stakeAmount)}
+                                disabled={!stakeAmountValid}
+                                className={`flex-1 py-2 rounded-xl font-bold transition 
+                                    ${stakeAmountValid ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                            >
+                                Stake
+                            </button>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                min={1}
+                                value={unstakeAmount}
+                                onChange={(e) => setUnstakeAmount(Math.max(1, parseInt(e.target.value || "1")))}
+                                className="w-20 bg-gray-800 text-white p-2 rounded-lg text-center"
+                            />
+                            <button
+                                onClick={() => callUnstake(unstakeAmount)}
+                                disabled={!unstakeAmountValid}
+                                className={`flex-1 py-2 rounded-xl font-bold transition 
+                                    ${unstakeAmountValid ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                            >
+                                Unstake
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+        );
+    };
+
+    return (
+        <div className="flex flex-col items-center min-h-screen p-4">
+            <div className="bg-gray-900 border-purple-700 rounded-2xl shadow-lg p-6 max-w-2xl w-full text-center mx-auto">
+                <h1 className="4xl font-bold text-pink-600 mb-6">
+                    Monchil Staking Center
+                </h1>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    {renderNftCard('old1')}
+                    {renderNftCard('old2')}
+                    {renderNftCard('new1')}
+                    {renderNftCard('new2')}
+                </div>
+
+                <div className="w-full">
+                    {renderActionPanel()}
+                </div>
+            </div>
+        </div>
+    );
 }
