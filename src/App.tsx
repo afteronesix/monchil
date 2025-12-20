@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { PiggyBank, Sparkles } from "lucide-react";
+import { PiggyBank, Sparkles, Coins } from "lucide-react";
 import Account from "./hooks/account";
 import { StakePage } from "./pages/StakePage";
 import { UpgradeNFT } from "./pages/UpgradeNFT"; 
+import { MintNFT } from "./pages/MintNFT";
 
 type MenuItem = {
     name: string;
@@ -12,8 +13,7 @@ type MenuItem = {
 };
 
 export default function App() {
-   
-    const [activePage, setActivePage] = useState("Upgrade");
+    const [activePage, setActivePage] = useState("Mint");
 
     useEffect(() => {
         try {
@@ -26,6 +26,11 @@ export default function App() {
 
     const menuItems: MenuItem[] = [
         {
+            name: "Mint", 
+            icon: <Coins className="w-5 h-5" />, 
+            component: <MintNFT />,
+        },
+        {
             name: "Upgrade", 
             icon: <Sparkles className="w-5 h-5" />, 
             component: <UpgradeNFT />,
@@ -35,17 +40,13 @@ export default function App() {
             icon: <PiggyBank className="w-5 h-5" />,
             component: <StakePage />,
         },
-      
     ];
 
-  
     const ActiveComponent = menuItems.find((item) => item.name === activePage)
-        ?.component || <UpgradeNFT />; 
+        ?.component || <MintNFT />; 
 
     return (
-        <div
-            className={`relative min-h-screen bg-purple-700`}
-        >
+        <div className={`relative min-h-screen bg-purple-700`}>
             <header className="absolute top-0 left-0 right-0 p-4 grid grid-cols-2 items-center z-50">
                 <div className="justify-self-start">
                     <Account />
@@ -55,9 +56,7 @@ export default function App() {
                 </div>
             </header>
 
-            <main
-                className={`w-full px-4 pb-24 pt-24`}
-            >
+            <main className={`w-full px-4 pb-24 pt-24`}>
                 {ActiveComponent}
             </main>
 

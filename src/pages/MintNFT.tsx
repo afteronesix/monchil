@@ -1,19 +1,16 @@
-// MintNFT.tsx
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 import { abi } from "../hooks/abi/abiNFT";
 import { toast } from "react-toastify";
 
-const CONTRACT_ADDRESS: `0x${string}` =
-  "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
+const CONTRACT_ADDRESS: `0x${string}` = "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
 
 const PRICE_PER_NFT = 1;
-const MAX_SUPPLY_PER_ID = 2500;
 
 const nftTypes = {
-  happy: { id: 1, name: "Happy Mon", image: "/happy.png" },
-  sad: { id: 2, name: "Sad Mon", image: "/sad.png" },
+  happy: { id: 3, name: "Happy Mon", image: "/happy.png" },
+  sad: { id: 4, name: "Sad Mon", image: "/sad.png" },
 };
 
 export function MintNFT() {
@@ -34,16 +31,6 @@ export function MintNFT() {
     contracts: [
       {
         ...contractConfig,
-        functionName: "totalSupply",
-        args: [BigInt(nftTypes.happy.id)],
-      },
-      {
-        ...contractConfig,
-        functionName: "totalSupply",
-        args: [BigInt(nftTypes.sad.id)],
-      },
-      {
-        ...contractConfig,
         functionName: "balanceOf",
         args: [
           address || "0x0000000000000000000000000000000000000000",
@@ -61,8 +48,8 @@ export function MintNFT() {
     ],
   });
 
-  const [totalMintedHappy, totalMintedSad, yourMintedHappy, yourMintedSad] =
-    data?.map((d) => (d.status === "success" ? d.result : 0)) ?? [0, 0, 0, 0];
+  const [yourMintedHappy, yourMintedSad] =
+    data?.map((d) => (d.status === "success" ? d.result : 0)) ?? [0, 0];
 
   const hasNFT = Number(yourMintedHappy) > 0 || Number(yourMintedSad) > 0;
 
@@ -87,10 +74,7 @@ export function MintNFT() {
         value,
       });
 
-      toast.success(
-        `🎉 Successfully minted ${quantity} ${currentNFT.name}(s)!`
-      );
-
+      toast.success(`🎉 Successfully minted ${quantity} ${currentNFT.name}(s)!`);
       refetch();
 
       sdk.actions.composeCast({
@@ -110,7 +94,6 @@ export function MintNFT() {
           Mint Your Monchil
         </h1>
 
-        {/* 🔥 SELECTOR HAPPY / SAD */}
         <div className="flex justify-center gap-4 mb-6">
           <button
             onClick={() => setSelectedType("happy")}
@@ -135,7 +118,6 @@ export function MintNFT() {
           </button>
         </div>
 
-        {/* 🔥 ONLY ONE CARD DISPLAYED */}
         <div className="bg-gray-800 border border-purple-700 rounded-2xl p-5 flex flex-col items-center w-full">
           <h2 className="text-xl font-bold text-purple-500 mb-2">
             {currentNFT.name}
@@ -151,7 +133,6 @@ export function MintNFT() {
             Price: {PRICE_PER_NFT} MON
           </p>
 
-          {/* Quantity */}
           <div className="flex items-center justify-center mb-4 gap-3">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -159,11 +140,9 @@ export function MintNFT() {
             >
               -
             </button>
-
-            <span className="text-2xl font-bold w-10 text-center">
+            <span className="text-2xl font-bold w-10 text-center text-white">
               {quantity}
             </span>
-
             <button
               onClick={() => setQuantity((q) => q + 1)}
               className="bg-pink-200 text-pink-700 w-8 h-8 rounded-full text-xl font-bold flex items-center justify-center"
@@ -172,7 +151,6 @@ export function MintNFT() {
             </button>
           </div>
 
-          {/* 🔥 ONE MINT BUTTON */}
           <button
             disabled={!isConnected || isPending}
             onClick={handleMint}
@@ -182,37 +160,14 @@ export function MintNFT() {
           </button>
         </div>
 
-        {/* SUPPLY INFO */}
-        <div className="flex flex-col md:flex-row justify-center gap-8 mt-6 mb-4 text-sm text-gray-400">
-          <p>
-            Happy Minted:{" "}
-            <strong>
-              {Number(totalMintedHappy)} / {MAX_SUPPLY_PER_ID}
-            </strong>
-          </p>
-
-          <p>
-            Sad Minted:{" "}
-            <strong>
-              {Number(totalMintedSad)} / {MAX_SUPPLY_PER_ID}
-            </strong>
-          </p>
-        </div>
-
-        {/* USER COLLECTION */}
         {isConnected ? (
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-gray-800 rounded-lg p-4 mt-6">
             <h3 className="font-bold text-lg mb-2 text-purple-400">
               Your Collection
             </h3>
-
             <div className="flex justify-center gap-8 text-white mb-4">
-              <p>
-                Happy Mon: <strong>{Number(yourMintedHappy)}</strong>
-              </p>
-              <p>
-                Sad Mon: <strong>{Number(yourMintedSad)}</strong>
-              </p>
+              <p>Happy Mon: <strong>{Number(yourMintedHappy)}</strong></p>
+              <p>Sad Mon: <strong>{Number(yourMintedSad)}</strong></p>
             </div>
 
             {hasNFT && (

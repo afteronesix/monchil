@@ -233,7 +233,7 @@ export function UpgradeNFT() {
             const currentLevel = isOld ? 0 : 1;
             const targetLevel = currentLevel + 1;
             
-            const levelLabel = isOld ? "Old Monchil (Lv 0)" : `Monchil Lv. ${currentLevel}`;
+            const levelLabel = isOld ? "Lv 0" : `Monchil Lv. ${currentLevel}`;
             const feeDisplay = fees[targetLevel as keyof typeof fees];
             const feeMon = Number(feeDisplay) / 1e18;
             
