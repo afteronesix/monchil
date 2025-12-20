@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { PiggyBank, Sparkles, Coins } from "lucide-react";
+import { PiggyBank, Sparkles, Coins, Users } from "lucide-react";
 import Account from "./hooks/account";
 import { StakePage } from "./pages/StakePage";
 import { UpgradeNFT } from "./pages/UpgradeNFT"; 
 import { MintNFT } from "./pages/MintNFT";
+import { RefPage } from "./pages/RefPage";
 
 type MenuItem = {
     name: string;
@@ -40,13 +41,18 @@ export default function App() {
             icon: <PiggyBank className="w-5 h-5" />,
             component: <StakePage />,
         },
+        {
+            name: "Referral",
+            icon: <Users className="w-5 h-5" />,
+            component: <RefPage />,
+        },
     ];
 
     const ActiveComponent = menuItems.find((item) => item.name === activePage)
         ?.component || <MintNFT />; 
 
     return (
-        <div className={`relative min-h-screen bg-purple-700`}>
+        <div className="relative min-h-screen bg-purple-700">
             <header className="absolute top-0 left-0 right-0 p-4 grid grid-cols-2 items-center z-50">
                 <div className="justify-self-start">
                     <Account />
@@ -56,7 +62,7 @@ export default function App() {
                 </div>
             </header>
 
-            <main className={`w-full px-4 pb-24 pt-24`}>
+            <main className="w-full px-4 pb-24 pt-24">
                 {ActiveComponent}
             </main>
 

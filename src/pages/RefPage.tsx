@@ -119,7 +119,7 @@ export function RefPage() {
                         </div>
                         <button 
                             onClick={handleShare}
-                            className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition shadow-lg"
+                            className="flex items-center justify-center gap-2 w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-bold transition shadow-lg"
                         >
                             <Share2 className="w-5 h-5"/> Share to Farcaster
                         </button>
