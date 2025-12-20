@@ -68,7 +68,7 @@ export function RefPage() {
     const handleShare = () => {
         if (!userData.myCode) return;
         sdk.actions.composeCast({
-            text: `Join Monchil and earn rewards! Use my referral code: ${userData.myCode} ✨\n\nBuild your collection and earn $MON!`,
+            text: `Join Monchil and earn rewards! Use my referral code: ${userData.myCode} ✨\n\nMint your collection, stake and earn $MON!`,
             embeds: ["https://monchil.vercel.app"]
         });
     };
