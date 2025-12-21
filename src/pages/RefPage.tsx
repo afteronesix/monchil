@@ -90,7 +90,7 @@ export function RefPage() {
                         <input 
                             value={refInput}
                             onChange={(e) => setRefInput(e.target.value.toUpperCase())}
-                            placeholder="EXAMPLE123"
+                            placeholder="MON"
                             className="w-full bg-gray-900 text-white p-4 rounded-lg text-center mb-4 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                         />
                         <button onClick={handleRegister} className="w-full bg-purple-600 py-4 rounded-xl font-bold hover:bg-pink-600 transition-all shadow-lg">
