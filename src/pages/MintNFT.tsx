@@ -89,9 +89,9 @@ export function MintNFT() {
         {isConnected && (
           <div className="bg-gray-800 rounded-xl p-4 mt-6 border border-gray-700">
             <p className="text-gray-400 text-sm mb-2 uppercase font-bold tracking-widest">Inventory</p>
-            <p className="text-2xl font-black text-white mb-4">Lv 1: {Number(myBalance)}</p>
+            <p className="text-2xl font-black text-white mb-4">Mochil Lv 1 : {Number(myBalance)}</p>
             {myBalance > 0n && (
-              <button onClick={() => sdk.actions.composeCast({ text: `I've collected ${Number(myBalance)} Monchil Lv 1 NFT — Mint & STAKE to earn $MON daily! ✨`, embeds: ["https://monchil.vercel.app"] })} className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-xl transition uppercase text-sm shadow-md">Share My Collection</button>
+              <button onClick={() => sdk.actions.composeCast({ text: `I've collected ${Number(myBalance)} Monchil NFT — Mint & STAKE to earn $MON daily! ✨`, embeds: ["https://monchil.vercel.app"] })} className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-xl transition uppercase text-sm shadow-md">Share My Collection</button>
             )}
           </div>
         )}
