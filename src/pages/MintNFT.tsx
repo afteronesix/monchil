@@ -1,57 +1,38 @@
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
-import { abi } from "../hooks/abi/abiNFT";
+import { upgradeAbi } from "../hooks/abi/AbiUpgrade";
+import { monchilIdAbi } from "../hooks/abi/AbiMonchilID";
 import { toast } from "react-toastify";
 
-const CONTRACT_ADDRESS: `0x${string}` = "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
-
-const PRICE_PER_NFT = 1;
-
-const nftTypes = {
-  happy: { id: 3, name: "Happy Mon", image: "/happy.png" },
-  sad: { id: 4, name: "Sad Mon", image: "/sad.png" },
-};
+const UPGRADE_CONTRACT: `0x${string}` = "0xfb7EA1fdb323b7e9c97fe6688EeF9A70E910571b";
+const NEW_NFT_CONTRACT: `0x${string}` = "0x5f052CC161d117154CA4FED968EA037bF9cE4F02";
 
 export function MintNFT() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
-
-  const [selectedType, setSelectedType] = useState<"happy" | "sad">("happy");
   const [quantity, setQuantity] = useState(1);
 
-  const currentNFT = nftTypes[selectedType];
-
-  const contractConfig = {
-    abi,
-    address: CONTRACT_ADDRESS,
-  } as const;
+  const userAddress = address || "0x0000000000000000000000000000000000000000";
 
   const { data, refetch } = useReadContracts({
     contracts: [
       {
-        ...contractConfig,
-        functionName: "balanceOf",
-        args: [
-          address || "0x0000000000000000000000000000000000000000",
-          BigInt(nftTypes.happy.id),
-        ],
+        abi: upgradeAbi,
+        address: UPGRADE_CONTRACT,
+        functionName: "directMintFeeLevel1",
       },
       {
-        ...contractConfig,
+        abi: monchilIdAbi,
+        address: NEW_NFT_CONTRACT,
         functionName: "balanceOf",
-        args: [
-          address || "0x0000000000000000000000000000000000000000",
-          BigInt(nftTypes.sad.id),
-        ],
+        args: [userAddress, 1n],
       },
     ],
   });
 
-  const [yourMintedHappy, yourMintedSad] =
-    data?.map((d) => (d.status === "success" ? d.result : 0)) ?? [0, 0];
-
-  const hasNFT = Number(yourMintedHappy) > 0 || Number(yourMintedSad) > 0;
+  const pricePerNft = (data?.[0]?.result as bigint) || BigInt(30 * 1e18);
+  const myBalance = (data?.[1]?.result as bigint) || 0n;
 
   useEffect(() => {
     if (isConnected) {
@@ -64,21 +45,21 @@ export function MintNFT() {
     if (!address) return toast.error("Wallet not connected");
 
     try {
-      const value = BigInt(Math.round(PRICE_PER_NFT * quantity * 1e18));
+      const totalValue = pricePerNft * BigInt(quantity);
 
       await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi,
-        functionName: "mint",
-        args: [BigInt(currentNFT.id), BigInt(quantity)],
-        value,
+        address: UPGRADE_CONTRACT,
+        abi: upgradeAbi,
+        functionName: "mintLevel1",
+        args: [BigInt(quantity)],
+        value: totalValue,
       });
 
-      toast.success(`🎉 Successfully minted ${quantity} ${currentNFT.name}(s)!`);
+      toast.success(`🎉 Minted ${quantity} Monchil Lv 1!`);
       refetch();
 
       sdk.actions.composeCast({
-        text: `I just minted ${quantity} ${currentNFT.name} NFT(s)!✨ Mint your Monchil Now & STAKE to earn $MON`,
+        text: `I just minted ${quantity} Monchil Lv 1 NFT(s)! ✨ Mint yours now & STAKE to earn $MON`,
         embeds: ["https://monchil.vercel.app"],
       });
     } catch (err) {
@@ -88,64 +69,34 @@ export function MintNFT() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
+    <div className="flex items-center justify-center min-h-screen p-4 text-white">
       <div className="bg-gray-900 border-purple-700 rounded-2xl shadow-lg p-6 max-w-lg w-full text-center mx-auto">
-        <h1 className="text-4xl font-bold text-purple-600 mb-6">
-          Mint Your Monchil
-        </h1>
+        <h1 className="text-4xl font-black text-pink-600 mb-6 uppercase italic">Mint Monchil</h1>
 
-        <div className="flex justify-center gap-4 mb-6">
-          <button
-            onClick={() => setSelectedType("happy")}
-            className={`px-4 py-2 rounded-xl font-bold ${
-              selectedType === "happy"
-                ? "bg-purple-600 text-white"
-                : "bg-gray-700 text-gray-300"
-            }`}
-          >
-            Happy
-          </button>
-
-          <button
-            onClick={() => setSelectedType("sad")}
-            className={`px-4 py-2 rounded-xl font-bold ${
-              selectedType === "sad"
-                ? "bg-purple-600 text-white"
-                : "bg-gray-700 text-gray-300"
-            }`}
-          >
-            Sad
-          </button>
-        </div>
-
-        <div className="bg-gray-800 border border-purple-700 rounded-2xl p-5 flex flex-col items-center w-full">
-          <h2 className="text-xl font-bold text-purple-500 mb-2">
-            {currentNFT.name}
-          </h2>
+        <div className="bg-gray-800 border border-purple-700 rounded-2xl p-5 flex flex-col items-center w-full shadow-inner">
+          <h2 className="text-xl font-bold text-purple-400 mb-4 uppercase">Monchil Lv 1</h2>
 
           <img
-            src={currentNFT.image}
-            alt={currentNFT.name}
-            className="rounded-xl border-4 border-pink-200 shadow-md mb-3 w-48 h-48 object-cover"
+            src="/1.png"
+            alt="Monchil Lv 1"
+            className="rounded-xl border-4 border-pink-500 shadow-2xl mb-4 w-56 h-56 object-cover"
           />
 
-          <p className="text-lg font-semibold text-gray-300 mb-3">
-            Price: {PRICE_PER_NFT} MON
+          <p className="text-lg font-black text-yellow-400 mb-4">
+            Price: {Number(pricePerNft) / 1e18} $MON
           </p>
 
-          <div className="flex items-center justify-center mb-4 gap-3">
+          <div className="flex items-center justify-center mb-6 gap-6 bg-gray-900 p-2 rounded-full border border-gray-700">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="bg-pink-200 text-pink-700 w-8 h-8 rounded-full text-xl font-bold flex items-center justify-center"
+              className="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full text-2xl font-black flex items-center justify-center transition"
             >
               -
             </button>
-            <span className="text-2xl font-bold w-10 text-center text-white">
-              {quantity}
-            </span>
+            <span className="text-3xl font-black w-12 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="bg-pink-200 text-pink-700 w-8 h-8 rounded-full text-xl font-bold flex items-center justify-center"
+              className="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full text-2xl font-black flex items-center justify-center transition"
             >
               +
             </button>
@@ -154,38 +105,33 @@ export function MintNFT() {
           <button
             disabled={!isConnected || isPending}
             onClick={handleMint}
-            className="w-full bg-purple-500 hover:bg-pink-600 text-white font-bold py-2 rounded-xl shadow-md transition disabled:opacity-50"
+            className="w-full bg-purple-600 hover:bg-pink-600 text-white font-black py-4 rounded-xl shadow-lg transition disabled:opacity-50 uppercase tracking-widest"
           >
-            {isPending ? "Processing..." : `Mint ${quantity}`}
+            {isPending ? "Processing..." : `Confirm Mint (${(Number(pricePerNft) * quantity) / 1e18} $MON)`}
           </button>
         </div>
 
         {isConnected ? (
-          <div className="bg-gray-800 rounded-lg p-4 mt-6">
-            <h3 className="font-bold text-lg mb-2 text-purple-400">
-              Your Collection
-            </h3>
-            <div className="flex justify-center gap-8 text-white mb-4">
-              <p>Happy Mon: <strong>{Number(yourMintedHappy)}</strong></p>
-              <p>Sad Mon: <strong>{Number(yourMintedSad)}</strong></p>
-            </div>
+          <div className="bg-gray-800 rounded-xl p-4 mt-6 border border-gray-700">
+            <p className="text-gray-400 text-sm mb-2 uppercase font-bold">Your Balance</p>
+            <p className="text-2xl font-black text-white mb-4">Lv 1: {Number(myBalance)}</p>
 
-            {hasNFT && (
+            {myBalance > 0n && (
               <button
                 onClick={() =>
                   sdk.actions.composeCast({
-                    text: "I've collected a Monchil NFT — go mint yours too & STAKE to earn $MON✨",
+                    text: `I've collected ${Number(myBalance)} Monchil Lv 1 NFT — mint yours now & STAKE to earn $MON ✨`,
                     embeds: ["https://monchil.vercel.app"],
                   })
                 }
-                className="w-full max-w-xs mx-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition"
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-xl transition uppercase text-sm shadow-md"
               >
-                Share My Collection!
+                Share My Collection
               </button>
             )}
           </div>
         ) : (
-          <p className="text-gray-500 mt-4">Connect your wallet to continue.</p>
+          <p className="text-gray-500 mt-6 animate-pulse">Connect wallet to start minting.</p>
         )}
       </div>
     </div>

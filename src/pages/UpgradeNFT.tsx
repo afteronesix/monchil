@@ -10,7 +10,7 @@ import { upgradeAbi } from "../hooks/abi/AbiUpgrade";
 
 const OLD_NFT_CONTRACT: `0x${string}` = "0xc84932efcBeEdbcf5B25F41461DE3F2b7DB8f5Eb";
 const NEW_NFT_CONTRACT: `0x${string}` = "0x5f052CC161d117154CA4FED968EA037bF9cE4F02";
-const UPGRADE_CONTRACT: `0x${string}` = "0x9c44cfEbEbB5aD7C02B519B814553e3B7a2DBCC5";
+const UPGRADE_CONTRACT: `0x${string}` = "0xfb7EA1fdb323b7e9c97fe6688EeF9A70E910571b";
 
 const NFT_CONFIG = {
     old: { level: 0, name: "Monchil Lv 0", image: "/old.png", reward: "0.02" },
